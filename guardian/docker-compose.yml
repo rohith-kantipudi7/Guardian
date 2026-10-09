@@ -1,0 +1,33 @@
+services:
+  backend:
+    build: ./backend/guardian-api
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: sqlite:////data/guardian.db
+      REQUIRE_DEVICE_AUTH: "true"
+      CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+      DEMO_MODE: "true"
+    volumes:
+      - guardian-data:/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  dashboard:
+    build:
+      context: ./dashboard/guardian-dashboard
+      args:
+        VITE_API_URL: http://localhost:8000
+        VITE_WS_URL: ws://localhost:8000/ws/emergency
+        VITE_MAP_PROVIDER: leaflet
+    ports:
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  guardian-data:

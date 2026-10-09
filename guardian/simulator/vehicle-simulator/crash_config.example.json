@@ -1,0 +1,22 @@
+{
+  "gravity_alpha": 0.01,
+  "impact_threshold_g": 2.5,
+  "severe_impact_g": 8.0,
+  "rotation_threshold_rad_s": 3.0,
+  "severe_rotation_rad_s": 6.0,
+  "speed_drop_threshold_kmh": 10.0,
+  "severe_speed_drop_kmh": 60.0,
+  "min_impact_samples": 3,
+  "repeated_impact_gap_ms": 150,
+  "analysis_window_ms": 1000,
+  "verification_window_ms": 10000,
+  "critical_skips_verification": true,
+  "post_event_cooldown_ms": 30000,
+  "weight_impact": 0.45,
+  "weight_rotation": 0.2,
+  "weight_speed": 0.25,
+  "weight_repeated": 0.1,
+  "minor_confidence": 0.25,
+  "moderate_confidence": 0.5,
+  "critical_confidence": 0.85
+}

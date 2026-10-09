@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- POC: cleartext HTTP is allowed so the phone can reach a laptop backend on the local network.
+     Deployed backends must use HTTPS (see docs/security.md). -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

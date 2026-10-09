@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+*.db
+*.sqlite3
+
+# Simulator runtime state
+simulator/vehicle-simulator/.sim_state.json
+simulator/vehicle-simulator/.sim_queue.json
+simulator/vehicle-simulator/crash_config.json
+
+# Node
+node_modules/
+dist/
+
+# Android
+mobile/guardian-android/.gradle/
+mobile/guardian-android/build/
+mobile/guardian-android/app/build/
+mobile/guardian-android/local.properties
+mobile/guardian-android/.idea/
+*.iml
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# PlatformIO
+device/guardian-device/.pio/
+device/guardian-device/include/config/secrets.h
+
+# Secrets / env
+.env
+.env.*
+!.env.example
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json

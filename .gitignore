@@ -1,0 +1,48 @@
+# Repo-root ignores (git repo root is this folder; project lives under guardian/).
+
+# Python / virtualenvs
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Databases / local state
+*.db
+*.sqlite3
+guardian.db
+
+# Simulator runtime state
+**/.sim_state.json
+**/.sim_queue.json
+**/crash_config.json
+
+# Node
+node_modules/
+dist/
+
+# Android
+**/.gradle/
+**/build/
+**/local.properties
+**/.idea/
+*.iml
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# PlatformIO
+**/.pio/
+**/include/config/secrets.h
+
+# Secrets / env
+.env
+.env.*
+!.env.example
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
