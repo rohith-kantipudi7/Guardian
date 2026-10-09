@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.guardian.app.ui.theme.Muted
 
-/** Shows the post-crash evidence: cabin + road stills and a playable in-cabin audio clip. */
+/** Shows the post-crash evidence: cabin + road stills and playable before/after audio clips. */
 @Composable
 fun CaptureEvidence(
     cabinPath: String?,
@@ -50,13 +50,16 @@ fun CaptureEvidence(
     audioDurationSec: Int,
     modifier: Modifier = Modifier,
     accent: Color = MaterialTheme.colorScheme.primary,
+    preAudioPath: String? = null,
+    preAudioDurationSec: Int = 0,
 ) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             FilePhoto(cabinPath, "Cabin", Modifier.weight(1f))
             FilePhoto(roadPath, "Road", Modifier.weight(1f))
         }
-        if (audioPath != null) AudioPlayback(audioPath, audioDurationSec, accent)
+        if (preAudioPath != null) AudioPlayback("Before impact", preAudioPath, preAudioDurationSec, accent)
+        if (audioPath != null) AudioPlayback("After impact", audioPath, audioDurationSec, accent)
     }
 }
 
@@ -96,7 +99,7 @@ private fun FilePhoto(path: String?, label: String, modifier: Modifier = Modifie
 }
 
 @Composable
-private fun AudioPlayback(path: String, durationSec: Int, accent: Color) {
+private fun AudioPlayback(label: String, path: String, durationSec: Int, accent: Color) {
     var playing by remember { mutableStateOf(false) }
     val holder = remember { arrayOfNulls<MediaPlayer>(1) }
     DisposableEffect(Unit) {
@@ -147,7 +150,7 @@ private fun AudioPlayback(path: String, durationSec: Int, accent: Color) {
         )
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            Text("In-cabin audio · ${durationSec}s", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text("$label · ${durationSec}s", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Text(if (playing) "Playing…" else "Tap to play the recorded clip", color = Muted, fontSize = 12.sp)
         }
     }

@@ -7,6 +7,8 @@ data class BlackBoxBundle(
     val capturedAtMs: Long,
     val audioPath: String?,
     val audioDurationSec: Int,
+    val preAudioPath: String? = null,
+    val preAudioDurationSec: Int = 0,
     val cabinImagePath: String? = null,
     val roadImagePath: String? = null,
     val sensorLog: String,
@@ -21,5 +23,6 @@ fun BlackBoxBundle.toTransferJson(eventId: String?, severity: String, confidence
     val text = if (a != null) "${a.whatHappened} ${a.occupantState} ${a.recommendation}" else ""
     val images = listOfNotNull(cabinImagePath, roadImagePath).size
     return """{"eventId":"${eventId ?: ""}","severity":"$severity","confidence":$confidence,""" +
-        """"sensorLog":"$sensorLog","audioSec":$audioDurationSec,"images":$images,"assessment":"$text"}"""
+        """"sensorLog":"$sensorLog","audioSec":$audioDurationSec,"preAudioSec":$preAudioDurationSec,""" +
+        """"images":$images,"assessment":"$text"}"""
 }

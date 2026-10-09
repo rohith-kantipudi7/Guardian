@@ -111,13 +111,15 @@ class GuardianViewModel(
     fun runCaptureDemo() = viewModelScope.launch {
         if (_capturing.value) return@launch
         _capturing.value = true
-        _message.value = "Capturing cabin + road photos and voice…"
+        _message.value = "Capturing cabin + road photos and voice (before + after)…"
         val photos = dualCameraCapture.capture()
-        val clip = conversationCapture.capture()
+        val audio = conversationCapture.captureAroundCrash(postSeconds = 6)
         _demoCapture.value = BlackBoxBundle(
             capturedAtMs = System.currentTimeMillis(),
-            audioPath = clip?.path,
-            audioDurationSec = clip?.durationSec ?: 0,
+            audioPath = audio.postPath,
+            audioDurationSec = audio.postDurationSec,
+            preAudioPath = audio.prePath,
+            preAudioDurationSec = audio.preDurationSec,
             cabinImagePath = photos.cabinPath,
             roadImagePath = photos.roadPath,
             sensorLog = "capture test",
@@ -125,8 +127,10 @@ class GuardianViewModel(
             assessment = null,
         )
         _capturing.value = false
+        conversationCapture.startPreBuffer(viewModelScope) // resume the rolling pre-impact buffer
         val n = listOfNotNull(photos.cabinPath, photos.roadPath).size
-        _message.value = "Captured $n photo(s)" + (clip?.let { " + ${it.durationSec}s audio" } ?: "")
+        val secs = audio.preDurationSec + audio.postDurationSec
+        _message.value = "Captured $n photo(s)" + (if (secs > 0) " + ${secs}s audio (before + after)" else "")
     }
 
     fun clearDemoCapture() {
@@ -221,18 +225,30 @@ class GuardianViewModel(
         if (settings.value.notifications) {
             notifier?.crash("CRASH DETECTED", "${r.severity} impact detected on your phone")
         }
-        // Mobile is primary: run the on-device AI, then capture the in-cabin conversation for the black box.
+        // Mobile is primary: capture the scene first, then let the AI reason over what we actually have.
         viewModelScope.launch {
+            val photos = dualCameraCapture.capture()
+            val imageCount = listOfNotNull(photos.cabinPath, photos.roadPath).size
             val assessment = onDeviceAi.assess(
-                CrashContext(r.severity, r.confidence, r.accelPeakG, r.rotationPeakRadS),
+                CrashContext(
+                    severity = r.severity,
+                    confidence = r.confidence,
+                    accelPeakG = r.accelPeakG,
+                    rotationPeakRadS = r.rotationPeakRadS,
+                    hasAudio = true,
+                    audioSec = conversationCapture.expectedCrashAudioSec,
+                    imageCount = imageCount,
+                ),
             )
             _alert.value = _alert.value?.copy(aiAssessment = assessment)
-            val photos = dualCameraCapture.capture()
-            val clip = conversationCapture.capture()
+            // Before + after in-cabin audio (the pre-buffer already holds the seconds before impact).
+            val audio = conversationCapture.captureAroundCrash()
             val bundle = BlackBoxBundle(
                 capturedAtMs = System.currentTimeMillis(),
-                audioPath = clip?.path,
-                audioDurationSec = clip?.durationSec ?: 0,
+                audioPath = audio.postPath,
+                audioDurationSec = audio.postDurationSec,
+                preAudioPath = audio.prePath,
+                preAudioDurationSec = audio.preDurationSec,
                 cabinImagePath = photos.cabinPath,
                 roadImagePath = photos.roadPath,
                 sensorLog = "peak ${"%.1f".format(r.accelPeakG)} g · rot ${"%.1f".format(r.rotationPeakRadS)} rad/s",

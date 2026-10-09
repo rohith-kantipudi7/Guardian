@@ -147,7 +147,8 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
                     Icon(Icons.Rounded.GraphicEq, null, tint = Color(0xFF6EE7B7), modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        if (bb.audioPath != null) "In-cabin audio captured (${bb.audioDurationSec}s)"
+                        if (bb.audioPath != null || bb.preAudioPath != null)
+                            "In-cabin audio captured (${bb.preAudioDurationSec}s before + ${bb.audioDurationSec}s after)"
                         else "Black box: sensor log stored",
                         color = Color(0xFFFECACA),
                         fontSize = 13.sp,
@@ -168,6 +169,8 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
                         audioPath = bb.audioPath,
                         audioDurationSec = bb.audioDurationSec,
                         accent = Color(0xFF6EE7B7),
+                        preAudioPath = bb.preAudioPath,
+                        preAudioDurationSec = bb.preAudioDurationSec,
                     )
                 }
             }

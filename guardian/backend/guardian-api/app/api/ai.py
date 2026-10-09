@@ -28,6 +28,9 @@ class AssessRequest(BaseModel):
     rotation_peak_rad_s: float = Field(alias="rotationPeakRadS")
     speed_kmh: float | None = Field(default=None, alias="speedKmh")
     transcript: str | None = None
+    has_audio: bool = Field(default=False, alias="hasAudio")
+    audio_sec: int = Field(default=0, alias="audioSec")
+    image_count: int = Field(default=0, alias="imageCount")
 
     model_config = {"populate_by_name": True}
 
@@ -59,6 +62,10 @@ def _user_prompt(body: AssessRequest) -> str:
     ]
     if body.speed_kmh is not None:
         parts.append(f"speed_before_kmh={body.speed_kmh:.0f}")
+    if body.has_audio:
+        parts.append(f"in_cabin_audio_recorded={body.audio_sec}s (before+after impact)")
+    if body.image_count:
+        parts.append(f"cabin_and_road_photos={body.image_count}")
     if body.transcript:
         parts.append(f"cabin_transcript={body.transcript!r}")
     return "Crash signals: " + ", ".join(parts)

@@ -10,6 +10,9 @@ data class CrashContext(
     val rotationPeakRadS: Double,
     val speedKmh: Double? = null,
     val transcript: String? = null,
+    val hasAudio: Boolean = false,
+    val audioSec: Int = 0,
+    val imageCount: Int = 0,
 )
 
 /** Structured, post-accident assessment produced on the phone. */

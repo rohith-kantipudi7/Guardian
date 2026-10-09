@@ -217,7 +217,14 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
                     }
                 }
                 demoCapture?.let { bb ->
-                    CaptureEvidence(bb.cabinImagePath, bb.roadImagePath, bb.audioPath, bb.audioDurationSec)
+                    CaptureEvidence(
+                        cabinPath = bb.cabinImagePath,
+                        roadPath = bb.roadImagePath,
+                        audioPath = bb.audioPath,
+                        audioDurationSec = bb.audioDurationSec,
+                        preAudioPath = bb.preAudioPath,
+                        preAudioDurationSec = bb.preAudioDurationSec,
+                    )
                     TextButton(onClick = { vm.clearDemoCapture() }) { Text("Clear") }
                 }
             }

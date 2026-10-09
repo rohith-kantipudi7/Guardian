@@ -41,6 +41,7 @@ private:
 
     void sample(uint32_t now);
     void raiseEmergency();
+    void ingestBlackBox(const std::string& json);
     void handleCommands();
     void replayHistory();
     DeviceStatus snapshot();

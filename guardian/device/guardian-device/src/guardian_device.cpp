@@ -1,6 +1,8 @@
 #include "guardian_device.h"
 
 #include <Arduino.h>
+#include <ArduinoJson.h>
+#include <LittleFS.h>
 #include <sys/time.h>
 
 #include <cstdio>
@@ -10,6 +12,17 @@
 #include "config/device_config.h"
 
 namespace guardian {
+
+namespace {
+constexpr const char* BLACKBOX_PATH = "/blackbox.json";
+
+Severity parseSeverity(const char* s) {
+    if (std::strcmp(s, "CRITICAL") == 0) return Severity::CRITICAL;
+    if (std::strcmp(s, "MODERATE") == 0) return Severity::MODERATE;
+    if (std::strcmp(s, "MINOR") == 0) return Severity::MINOR;
+    return Severity::NORMAL;
+}
+}  // namespace
 
 GuardianDevice::GuardianDevice(ImuSensor& imu, GnssProvider& gnss, VehicleTelemetryProvider& vehicle,
                                BatteryProvider& battery, CellularProvider& cellular, BleProvider& ble,
@@ -67,9 +80,8 @@ void GuardianDevice::loop() {
     // Backup alarm: the phone handed off its black box (it may be destroyed) -> sound off locally.
     std::string blackbox;
     if (ble_.consumeBlackBox(blackbox)) {
-        Serial.printf("[blackbox] received from phone (%u bytes) - sounding local alarm\n",
-                      static_cast<unsigned>(blackbox.size()));
         alert_.triggerFromPhone(now);
+        ingestBlackBox(blackbox);
     }
     alert_.update(detector_.state(), now);
     handleCommands();
@@ -135,6 +147,61 @@ void GuardianDevice::raiseEmergency() {
     detector_.onTransmitStarted();
     ble_.notifyEvent(e, false);  // companion only; skipped silently when no phone
     xTaskNotifyGive(netTask_);   // transmit now
+}
+
+// Phone (primary) streamed its black box before it could be destroyed. Persist the bundle so it
+// survives, and enqueue a backup crash event so the device delivers the alert on its own cellular
+// link even if the phone never reaches the backend. Idempotent: the backend dedupes by eventId.
+void GuardianDevice::ingestBlackBox(const std::string& json) {
+    Serial.printf("[blackbox] received from phone (%u bytes)\n", static_cast<unsigned>(json.size()));
+
+    // 1. Persist raw bundle to flash (write-then-rename so a power cut never leaves it half-written).
+    File f = LittleFS.open("/blackbox.tmp", "w");
+    if (f) {
+        f.write(reinterpret_cast<const uint8_t*>(json.data()), json.size());
+        f.close();
+        if (LittleFS.rename("/blackbox.tmp", BLACKBOX_PATH)) Serial.println("[blackbox] persisted to flash");
+    } else {
+        Serial.println("[blackbox] WARN could not open flash to persist bundle");
+    }
+
+    // 2. Build a deliverable crash event from the bundle.
+    JsonDocument doc;
+    if (deserializeJson(doc, json) != DeserializationError::Ok) {
+        Serial.println("[blackbox] parse failed; raw bundle stored, no backup event queued");
+        return;
+    }
+    CrashEvent e;
+    const char* eid = doc["eventId"] | "";
+    if (eid[0] != '\0') {
+        std::strncpy(e.eventId, eid, sizeof(e.eventId) - 1);
+    } else {
+        // Phone never got a backend id (was offline): mint one so the device can still deliver.
+        std::snprintf(e.eventId, sizeof(e.eventId), "EVT-%s-%lu-%04lx", GUARDIAN_DEVICE_ID,
+                      static_cast<unsigned long>(payloads::clockValid() ? time(nullptr) : millis()),
+                      static_cast<unsigned long>((esp_random() ^ ++eventCounter_) & 0xFFFF));
+    }
+    std::strncpy(e.deviceId, GUARDIAN_DEVICE_ID, sizeof(e.deviceId) - 1);
+    std::strncpy(e.vehicleId, GUARDIAN_VEHICLE_ID, sizeof(e.vehicleId) - 1);
+    char ts[32];
+    payloads::isoTimestamp(ts, sizeof(ts));
+    std::strncpy(e.timestamp, ts, sizeof(e.timestamp) - 1);
+    Location loc = gnss_.getLocation();
+    e.locationValid = loc.valid;
+    e.latitude = loc.latitude;
+    e.longitude = loc.longitude;
+    e.confidence = doc["confidence"] | 0.0f;
+    e.severity = parseSeverity(doc["severity"] | "CRITICAL");
+    e.phoneConnected = ble_.isPhoneConnected();
+    e.cellularConnected = cellular_.isConnected();
+
+    xSemaphoreTake(queueMutex_, portMAX_DELAY);
+    queue_.enqueue(e, millis());
+    pendingEvents_ = static_cast<uint8_t>(queue_.pendingCount());
+    xSemaphoreGive(queueMutex_);
+    ble_.notifyEvent(e, false);
+    xTaskNotifyGive(netTask_);
+    Serial.printf("[blackbox] backup crash event %s queued for cellular delivery\n", e.eventId);
 }
 
 void GuardianDevice::networkTaskEntry(void* self) { static_cast<GuardianDevice*>(self)->networkTask(); }

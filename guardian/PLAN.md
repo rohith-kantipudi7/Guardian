@@ -35,20 +35,25 @@ CRASH
 - [x] **Auto** on a detected emergency — the whole capture runs with no button
 - [x] **Dual camera capture** — front/cabin + rear/road stills (CameraX, no preview)
 - [x] Record in‑cabin **voice/conversation** automatically on detection
+- [x] **Before + after audio** — a rolling pre‑buffer captures the seconds *before* impact plus a
+      longer clip *after*; the AI now states the real captured audio/photos (no more hardcoded
+      "no audio")
 - [x] **Live demo**: "Capture test" button runs the real dual‑camera + mic now (no crash needed)
-- [x] Show the captured **cabin + road photos** and **play the recorded audio** in‑app (emergency + demo)
-- [~] Extend the AI to actually read the audio + images (currently reasons over signals + transcript)
+- [x] Show the captured **cabin + road photos** and **play before/after audio** in‑app (emergency + demo)
+- [~] Extend the AI to actually read the audio + image **bytes** (currently reasons over signals + evidence)
 
 ## 2. IoT device = backup + full data transfer
 - [~] Define the complete black‑box bundle (AI assessment + audio + images + sensor log + GPS + time)
 - [x] Transfer the bundle **phone → IoT device** over BLE (chunked)
 - [x] IoT **buzzer** sounds on its own crash state **and** when it receives the phone's black box
       (backup alarm for "phone destroyed")
-- [ ] IoT **persists** the received bundle and can deliver the alert if the phone is gone
+- [x] IoT **persists** the received bundle to flash and **queues a backup crash event** for
+      cellular delivery (idempotent by eventId, so no duplicate incident)
 - [ ] Verify end‑to‑end once the real IoT device is connected (IP: `10.239.116.232`)
 
 ## 3. Proper README
-- [ ] Rewrite the README to match this architecture (mobile‑primary, cloud AI, IoT backup, run + demo)
+- [x] Rewrite the README for the mobile‑primary architecture (phone primary, cloud AI, IoT backup,
+      run + capture demo)
 
 ## 4. Remove the "cloud" from the app + fix the emergency‑path view
 - [x] Dropped the "cloud / Wi‑Fi" wording; the source is now just **"Guardian device"**

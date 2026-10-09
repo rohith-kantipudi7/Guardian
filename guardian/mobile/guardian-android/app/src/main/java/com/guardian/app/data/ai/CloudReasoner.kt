@@ -18,6 +18,9 @@ private data class AssessRequest(
     val rotationPeakRadS: Double,
     val speedKmh: Double? = null,
     val transcript: String? = null,
+    val hasAudio: Boolean = false,
+    val audioSec: Int = 0,
+    val imageCount: Int = 0,
 )
 
 @Serializable
@@ -46,7 +49,10 @@ class CloudReasoner(private val baseUrl: () -> String) : OnDeviceAi {
         val url = baseUrl().trimEnd('/') + "/api/ai/assess"
         val body = json.encodeToString(
             AssessRequest.serializer(),
-            AssessRequest(ctx.severity.name, ctx.confidence, ctx.accelPeakG, ctx.rotationPeakRadS, ctx.speedKmh, ctx.transcript),
+            AssessRequest(
+                ctx.severity.name, ctx.confidence, ctx.accelPeakG, ctx.rotationPeakRadS, ctx.speedKmh, ctx.transcript,
+                ctx.hasAudio, ctx.audioSec, ctx.imageCount,
+            ),
         ).toRequestBody("application/json".toMediaType())
         val request = Request.Builder().url(url).post(body).build()
         http.newCall(request).execute().use { resp ->

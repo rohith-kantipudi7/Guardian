@@ -57,7 +57,7 @@ class AppContainer(app: Application) {
         fallback = EdgeReasoner(),
     )
     val modelManager = LlmModelManager(app)
-    val conversationCapture = ConversationCapture(app)
+    val conversationCapture = ConversationCapture(app).also { it.startPreBuffer(scope) }
     val dualCameraCapture = DualCameraCapture(app)
 }
 

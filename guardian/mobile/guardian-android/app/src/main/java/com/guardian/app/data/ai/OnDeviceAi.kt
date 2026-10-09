@@ -31,14 +31,23 @@ class EdgeReasoner : OnDeviceAi {
             "${(ctx.confidence * 100).roundToInt()}%"
         val whatHappened = "Detected $mechanism$speed — ${"%.1f".format(g)} g" +
             (if (rollover) ", ${"%.1f".format(ctx.rotationPeakRadS)} rad/s rotation." else " deceleration.")
-        val occupantState = ctx.transcript?.let { summariseOccupant(it) }
-            ?: "No in-cabin audio captured yet."
+        val occupantState = when {
+            ctx.transcript != null -> summariseOccupant(ctx.transcript)
+            ctx.hasAudio -> "In-cabin audio recorded (${ctx.audioSec}s, before + after impact) — available to responders; transcription pending."
+            else -> "No in-cabin audio captured yet."
+        }
+        val evidence = buildList {
+            if (ctx.hasAudio) add("${ctx.audioSec}s audio")
+            if (ctx.imageCount > 0) add("${ctx.imageCount} photo(s)")
+        }
         val recommendation = when (ctx.severity) {
             Severity.CRITICAL -> "Dispatch ambulance + police now; treat as life-threatening."
             Severity.MODERATE -> "Dispatch ambulance; confirm occupant responsiveness."
             else -> "Check on the occupant; medical help likely not required."
         }
-        return AiAssessment(headline, whatHappened, occupantState, recommendation, modelName)
+        val headlineWithEvidence =
+            if (evidence.isEmpty()) headline else "$headline · ${evidence.joinToString(" + ")} captured"
+        return AiAssessment(headlineWithEvidence, whatHappened, occupantState, recommendation, modelName)
     }
 
     private fun summariseOccupant(transcript: String): String {
