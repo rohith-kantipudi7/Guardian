@@ -1,6 +1,7 @@
 package com.guardian.app.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BatteryStd
@@ -55,6 +57,7 @@ import com.guardian.app.ui.components.StatusRow
 import com.guardian.app.ui.components.formatTimestamp
 import com.guardian.app.ui.components.severityColor
 import com.guardian.app.ui.components.statusText
+import com.guardian.app.ui.theme.BrandBrush
 import com.guardian.app.ui.theme.Critical
 import com.guardian.app.ui.theme.Muted
 import com.guardian.app.ui.theme.Ok
@@ -77,15 +80,18 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
         verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.size(38.dp).background(Critical, CircleShape), contentAlignment = Alignment.Center) {
-                Icon(Icons.Rounded.Shield, null, tint = Color.White, modifier = Modifier.size(22.dp))
+            Box(
+                Modifier.size(46.dp).background(BrandBrush, RoundedCornerShape(16.dp)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Rounded.Shield, null, tint = Color(0xFF06121F), modifier = Modifier.size(26.dp))
             }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
-                Text("GUARDIAN", style = MaterialTheme.typography.headlineMedium)
+                Text("GUARDIAN", style = MaterialTheme.typography.headlineSmall, letterSpacing = 2.sp)
                 Text("${settings.vehicleName} · ${settings.vehicleRegistration}", color = Muted, fontSize = 13.sp)
             }
-            Pill(if (settings.deviceSource == DeviceSource.BLE) "ESP32" else settings.deviceSource.label.substringBefore(' '), Muted)
+            Pill(if (protected) "Protected" else if (s == null) "Offline" else "No signal", if (protected) Ok else Warn)
         }
 
         // Hero: is the car protected right now?
@@ -94,27 +100,34 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
                 .fillMaxWidth()
                 .background(
                     Brush.verticalGradient(
-                        listOf((if (protected) Ok else Warn).copy(alpha = 0.28f), MaterialTheme.colorScheme.surface),
+                        listOf((if (protected) Ok else Warn).copy(alpha = 0.22f), MaterialTheme.colorScheme.surface),
                     ),
                     MaterialTheme.shapes.large,
                 )
+                .border(1.dp, (if (protected) Ok else Warn).copy(alpha = 0.35f), MaterialTheme.shapes.large)
                 .padding(20.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    if (protected) Icons.Rounded.GppGood else Icons.Rounded.GppMaybe,
-                    null,
-                    tint = if (protected) Ok else Warn,
-                    modifier = Modifier.size(56.dp),
-                )
+                Box(
+                    Modifier.size(64.dp).background((if (protected) Ok else Warn).copy(alpha = 0.16f), CircleShape),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        if (protected) Icons.Rounded.GppGood else Icons.Rounded.GppMaybe,
+                        null,
+                        tint = if (protected) Ok else Warn,
+                        modifier = Modifier.size(38.dp),
+                    )
+                }
                 Spacer(Modifier.width(16.dp))
                 Column {
                     Text(
-                        if (protected) "PROTECTED" else if (s == null) "DEVICE NOT REACHABLE" else "DEVICE OFFLINE",
-                        fontSize = 24.sp,
+                        if (protected) "PROTECTED" else if (s == null) "NOT CONNECTED" else "NO MOBILE SIGNAL",
+                        style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Black,
                         color = if (protected) Ok else Warn,
                     )
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         if (protected) "Crash detection is running on your vehicle device."
                         else if (s == null) "Connect to the vehicle device to see its status."

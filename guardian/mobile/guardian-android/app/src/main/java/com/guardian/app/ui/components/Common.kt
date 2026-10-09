@@ -82,13 +82,15 @@ fun SectionCard(
 @Composable
 fun Pill(text: String, color: Color, modifier: Modifier = Modifier) {
     Text(
-        text,
+        text.uppercase(),
         modifier
             .background(color.copy(alpha = 0.16f), RoundedCornerShape(50))
-            .padding(horizontal = 10.dp, vertical = 4.dp),
+            .border(1.dp, color.copy(alpha = 0.35f), RoundedCornerShape(50))
+            .padding(horizontal = 12.dp, vertical = 5.dp),
         color = color,
-        fontSize = 12.sp,
+        fontSize = 11.sp,
         fontWeight = FontWeight.Bold,
+        letterSpacing = 0.8.sp,
     )
 }
 
