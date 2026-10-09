@@ -148,13 +148,11 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
                 nodes = listOf(
                     ChainNode(Icons.Rounded.Smartphone, "Phone", linked),
                     ChainNode(Icons.Rounded.Router, "Device", s != null),
-                    ChainNode(Icons.Rounded.Cloud, "Cloud", if (s == null) null else lte),
-                    ChainNode(Icons.Rounded.Groups, "Help", null),
+                    ChainNode(Icons.Rounded.Groups, "Responders", null),
                 ),
                 links = listOf(
-                    ChainLink("BLE", linked),
-                    ChainLink("LTE", if (s == null) null else lte),
-                    ChainLink("SMS", null),
+                    ChainLink("Backup", s != null),
+                    ChainLink("Alert", if (s == null) null else lte),
                 ),
             )
             if (!linked) {

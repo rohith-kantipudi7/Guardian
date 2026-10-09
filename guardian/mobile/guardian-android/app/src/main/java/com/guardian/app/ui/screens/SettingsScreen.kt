@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.guardian.app.data.settings.DeviceSource
 import com.guardian.app.data.settings.EmergencyContact
+import com.guardian.app.domain.LinkState
 import com.guardian.app.ui.GuardianViewModel
 import com.guardian.app.ui.components.SectionCard
 import com.guardian.app.ui.theme.Muted
@@ -39,6 +40,7 @@ import com.guardian.app.ui.theme.Muted
 @Composable
 fun SettingsScreen(vm: GuardianViewModel, onPair: () -> Unit) {
     val s by vm.settings.collectAsStateWithLifecycle()
+    val link by vm.link.collectAsStateWithLifecycle()
     var backendUrl by remember(s.backendUrl) { mutableStateOf(s.backendUrl) }
     var virtualUrl by remember(s.virtualDeviceUrl) { mutableStateOf(s.virtualDeviceUrl) }
     var deviceId by remember(s.deviceId) { mutableStateOf(s.deviceId) }
@@ -54,7 +56,7 @@ fun SettingsScreen(vm: GuardianViewModel, onPair: () -> Unit) {
         Text("Settings", style = MaterialTheme.typography.headlineSmall)
 
         SectionCard("Vehicle device") {
-            DeviceSource.entries.forEach { src ->
+            listOf(DeviceSource.CLOUD, DeviceSource.VIRTUAL).forEach { src ->
                 Row(
                     Modifier.fillMaxWidth().clickable { vm.updateSettings { it.copy(deviceSource = src) } },
                     verticalAlignment = Alignment.CenterVertically,
@@ -70,19 +72,23 @@ fun SettingsScreen(vm: GuardianViewModel, onPair: () -> Unit) {
         }
 
         SectionCard("Servers") {
-            OutlinedTextField(backendUrl, { backendUrl = it }, label = { Text("Guardian cloud URL") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(backendUrl, { backendUrl = it }, label = { Text("Backend URL") }, singleLine = true, modifier = Modifier.fillMaxWidth())
             OutlinedTextField(virtualUrl, { virtualUrl = it }, label = { Text("Virtual device URL") }, singleLine = true, modifier = Modifier.fillMaxWidth())
             Text("Emulator: 10.0.2.2 is the laptop. Real phone: use the laptop's Wi-Fi IP.", color = Muted, fontSize = 12.sp)
             Button(onClick = { vm.updateSettings { it.copy(backendUrl = backendUrl, virtualDeviceUrl = virtualUrl) } }) { Text("Save") }
         }
 
         SectionCard("Vehicle") {
-            OutlinedTextField(vehicleName, { vehicleName = it }, label = { Text("Vehicle name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(registration, { registration = it }, label = { Text("Registration") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            OutlinedTextField(deviceId, { deviceId = it }, label = { Text("Device ID") }, singleLine = true, modifier = Modifier.fillMaxWidth())
-            Button(onClick = {
-                vm.updateSettings { it.copy(vehicleName = vehicleName, vehicleRegistration = registration, deviceId = deviceId) }
-            }) { Text("Save") }
+            if (link == LinkState.CONNECTED) {
+                OutlinedTextField(vehicleName, { vehicleName = it }, label = { Text("Vehicle name") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(registration, { registration = it }, label = { Text("Registration") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(deviceId, { deviceId = it }, label = { Text("Device ID") }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                Button(onClick = {
+                    vm.updateSettings { it.copy(vehicleName = vehicleName, vehicleRegistration = registration, deviceId = deviceId) }
+                }) { Text("Save") }
+            } else {
+                Text("Connect your Guardian device to add vehicle details.", color = Muted, fontSize = 13.sp)
+            }
         }
 
         SectionCard("Emergency contacts") {
@@ -106,7 +112,7 @@ fun SettingsScreen(vm: GuardianViewModel, onPair: () -> Unit) {
                 },
             ) { Text("Add contact") }
             Text(
-                "The Guardian cloud alerts them automatically. In this prototype the cloud uses the contacts stored with the vehicle profile.",
+                "Guardian alerts them automatically with your location and crash details.",
                 color = Muted,
                 fontSize = 12.sp,
             )

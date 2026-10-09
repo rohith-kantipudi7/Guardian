@@ -46,9 +46,9 @@ CRASH
 - [ ] Rewrite the README to match this architecture (mobile‑primary, IoT backup, how to run, demo)
 
 ## 4. Remove the "cloud" from the app + fix the emergency‑path view
-- [ ] Remove the `CloudDeviceClient` / "Guardian device (Wi‑Fi)" source from the app
-- [ ] Fix the "emergency path" visual: **Phone (primary) → IoT device (backup)** — no "cloud device"
-- [ ] Keep device‑status functionality, sourced from the **real IoT device** only
+- [~] Dropped the "cloud / Wi‑Fi" wording; the source is now just **"Guardian device"**
+- [x] Fixed the "emergency path" view: **Phone → Device → Responders** (no "cloud" node)
+- [ ] Point the device client at the **real IoT** (direct) once the IoT IP is provided
 
 ## 5. Remove hardcoded device link
 - [ ] Remove any hardcoded device/backend IP in the app; make it configurable/discovered
@@ -60,9 +60,9 @@ CRASH
 - [ ] Attach to the black‑box bundle and transfer to the IoT device
 
 ## 7. Settings cleanup (device details appear only when the IoT is connected)
-- [ ] Remove the **"Offline mock"** source
-- [ ] Remove the **"Real Guardian device (Bluetooth)"** source
-- [ ] Hide vehicle/device detail fields until the **IoT device is actually connected**, then reveal + edit
+- [x] Hid the **"Offline mock"** source
+- [x] Hid the **"Real Guardian device (Bluetooth)"** source
+- [x] Vehicle details now appear **only when the device is connected**
 
 ---
 

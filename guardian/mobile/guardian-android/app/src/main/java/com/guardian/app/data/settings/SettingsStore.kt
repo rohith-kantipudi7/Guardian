@@ -13,8 +13,8 @@ data class EmergencyContact(val name: String, val phone: String, val relationshi
 
 /** Where the app's "vehicle device" comes from. */
 enum class DeviceSource(val label: String, val detail: String) {
-    VIRTUAL("Virtual vehicle device", "The simulator on the laptop (same device the web showcase drives)"),
-    CLOUD("Guardian device (Wi-Fi)", "The real ESP32 over your network, via the Guardian backend"),
+    VIRTUAL("Simulator (demo)", "Laptop simulator standing in for the vehicle device"),
+    CLOUD("Guardian device", "Your vehicle's Guardian IoT device"),
     BLE("Real Guardian device (Bluetooth)", "ESP32 in the vehicle, over Bluetooth Low Energy"),
     MOCK("Offline mock", "Built into the app; nothing reaches the backend"),
 }
