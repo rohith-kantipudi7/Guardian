@@ -14,6 +14,7 @@ import com.guardian.app.data.capture.ConversationCapture
 import com.guardian.app.data.capture.ContinuousBlackBox
 import com.guardian.app.data.capture.DualCameraCapture
 import com.guardian.app.data.cloud.CloudDeviceClient
+import com.guardian.app.data.esp32.Esp32DeviceClient
 import com.guardian.app.data.local.GuardianDatabase
 import com.guardian.app.data.mock.MockGuardianDeviceClient
 import com.guardian.app.data.sensing.PhoneSensing
@@ -33,6 +34,11 @@ class AppContainer(app: Application) {
     val device = SwitchableDeviceClient(
         clients = mapOf(
             DeviceSource.NONE to NoDeviceClient(),
+            DeviceSource.ESP32 to Esp32DeviceClient(
+                scope,
+                baseUrl = { "http://" + settings.settings.value.deviceIp.trim() },
+                deviceId = { settings.settings.value.deviceId },
+            ),
             DeviceSource.VIRTUAL to VirtualDeviceClient(scope, baseUrl = { settings.settings.value.virtualDeviceUrl }),
             DeviceSource.CLOUD to CloudDeviceClient(
                 scope,

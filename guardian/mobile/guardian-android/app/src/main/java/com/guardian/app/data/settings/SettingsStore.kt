@@ -14,8 +14,9 @@ data class EmergencyContact(val name: String, val phone: String, val relationshi
 /** Where the app's "vehicle device" comes from. */
 enum class DeviceSource(val label: String, val detail: String) {
     NONE("No device connected", "Phone is primary; connect your Guardian IoT device as backup"),
+    ESP32("Guardian device (Wi-Fi)", "Your ESP32 collision device over Wi-Fi / hotspot"),
     VIRTUAL("Simulator (demo)", "Laptop simulator standing in for the vehicle device"),
-    CLOUD("Guardian device", "Your vehicle's Guardian IoT device"),
+    CLOUD("Guardian device (cloud)", "Device status read through the Guardian backend"),
     BLE("Real Guardian device (Bluetooth)", "ESP32 in the vehicle, over Bluetooth Low Energy"),
     MOCK("Offline mock", "Built into the app; nothing reaches the backend"),
 }
@@ -26,6 +27,7 @@ data class AppSettings(
     val backendUrl: String = BuildConfig.DEFAULT_BACKEND_URL,
     val virtualDeviceUrl: String = defaultVirtualUrl(BuildConfig.DEFAULT_BACKEND_URL),
     val deviceId: String = "GD-001",
+    val deviceIp: String = "10.239.116.232",
     val vehicleName: String = "My Vehicle",
     val vehicleRegistration: String = "KA01GD0001",
     val deviceSource: DeviceSource = DeviceSource.NONE,
@@ -46,6 +48,7 @@ class SettingsStore(context: Context) {
             backendUrl = prefs.getString("backendUrl", d.backendUrl) ?: d.backendUrl,
             virtualDeviceUrl = prefs.getString("virtualDeviceUrl", d.virtualDeviceUrl) ?: d.virtualDeviceUrl,
             deviceId = prefs.getString("deviceId", d.deviceId) ?: d.deviceId,
+            deviceIp = prefs.getString("deviceIp", d.deviceIp) ?: d.deviceIp,
             vehicleName = prefs.getString("vehicleName", d.vehicleName) ?: d.vehicleName,
             vehicleRegistration = prefs.getString("vehicleRegistration", d.vehicleRegistration) ?: d.vehicleRegistration,
             deviceSource = prefs.getString("deviceSource", null)
@@ -64,6 +67,7 @@ class SettingsStore(context: Context) {
             .putString("backendUrl", s.backendUrl.trim())
             .putString("virtualDeviceUrl", s.virtualDeviceUrl.trim())
             .putString("deviceId", s.deviceId.trim())
+            .putString("deviceIp", s.deviceIp.trim())
             .putString("vehicleName", s.vehicleName)
             .putString("vehicleRegistration", s.vehicleRegistration)
             .putString("deviceSource", s.deviceSource.name)

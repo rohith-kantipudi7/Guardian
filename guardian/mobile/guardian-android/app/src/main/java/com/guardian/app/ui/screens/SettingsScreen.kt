@@ -44,6 +44,7 @@ fun SettingsScreen(vm: GuardianViewModel, onPair: () -> Unit) {
     var backendUrl by remember(s.backendUrl) { mutableStateOf(s.backendUrl) }
     var virtualUrl by remember(s.virtualDeviceUrl) { mutableStateOf(s.virtualDeviceUrl) }
     var deviceId by remember(s.deviceId) { mutableStateOf(s.deviceId) }
+    var deviceIp by remember(s.deviceIp) { mutableStateOf(s.deviceIp) }
     var vehicleName by remember(s.vehicleName) { mutableStateOf(s.vehicleName) }
     var registration by remember(s.vehicleRegistration) { mutableStateOf(s.vehicleRegistration) }
     var contactName by remember { mutableStateOf("") }
@@ -56,7 +57,7 @@ fun SettingsScreen(vm: GuardianViewModel, onPair: () -> Unit) {
         Text("Settings", style = MaterialTheme.typography.headlineSmall)
 
         SectionCard("Vehicle device") {
-            listOf(DeviceSource.NONE, DeviceSource.CLOUD, DeviceSource.VIRTUAL).forEach { src ->
+            listOf(DeviceSource.NONE, DeviceSource.ESP32, DeviceSource.CLOUD, DeviceSource.VIRTUAL).forEach { src ->
                 Row(
                     Modifier.fillMaxWidth().clickable { vm.updateSettings { it.copy(deviceSource = src) } },
                     verticalAlignment = Alignment.CenterVertically,
@@ -68,7 +69,19 @@ fun SettingsScreen(vm: GuardianViewModel, onPair: () -> Unit) {
                     }
                 }
             }
-            Button(onClick = onPair, Modifier.fillMaxWidth()) { Text("Connect") }
+            if (s.deviceSource == DeviceSource.ESP32) {
+                OutlinedTextField(
+                    deviceIp,
+                    { deviceIp = it },
+                    label = { Text("Device IP (ESP32)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Text("The ESP32's Wi-Fi address — e.g. 10.239.116.232. Must be reachable from this phone.", color = Muted, fontSize = 12.sp)
+                Button(onClick = { vm.updateSettings { it.copy(deviceIp = deviceIp) } }, Modifier.fillMaxWidth()) { Text("Save & connect") }
+            } else {
+                Button(onClick = onPair, Modifier.fillMaxWidth()) { Text("Connect") }
+            }
         }
 
         SectionCard("Servers") {
