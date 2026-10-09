@@ -26,12 +26,16 @@ class PhoneSensing(context: Context) : SensorEventListener {
     private val accel = sensors.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
     private val gyro = sensors.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
     private val detector = PhoneCrashDetector()
+    private val anomalyDetector = DrivingAnomalyDetector()
 
     private val _state = MutableStateFlow(PhoneSensingState())
     val state: StateFlow<PhoneSensingState> = _state
 
     private val _crashes = MutableSharedFlow<PhoneCrashResult>(extraBufferCapacity = 4)
     val crashes: SharedFlow<PhoneCrashResult> = _crashes
+
+    private val _anomalies = MutableSharedFlow<AnomalyEvent>(extraBufferCapacity = 16)
+    val anomalies: SharedFlow<AnomalyEvent> = _anomalies
 
     fun start() {
         accel?.let { sensors.registerListener(this, it, SensorManager.SENSOR_DELAY_GAME) }
@@ -52,7 +56,12 @@ class PhoneSensing(context: Context) : SensorEventListener {
             Sensor.TYPE_ACCELEROMETER -> {
                 val result = detector.onAccel(e.values[0].toDouble(), e.values[1].toDouble(), e.values[2].toDouble())
                 _state.value = _state.value.copy(accelG = detector.lastAccelG)
-                if (result != null) _crashes.tryEmit(result)
+                if (result != null) {
+                    _crashes.tryEmit(result)
+                } else {
+                    anomalyDetector.sample(detector.lastAccelG, detector.lastRotation, System.currentTimeMillis())
+                        ?.let { _anomalies.tryEmit(it) }
+                }
             }
             Sensor.TYPE_GYROSCOPE -> {
                 detector.onGyro(e.values[0].toDouble(), e.values[1].toDouble(), e.values[2].toDouble())

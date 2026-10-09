@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.guardian.app.domain.CrashState
 import com.guardian.app.ui.EmergencyAlert
+import com.guardian.app.ui.components.CaptureEvidence
 import com.guardian.app.ui.components.ResponderRow
 import com.guardian.app.ui.components.formatCoords
 import com.guardian.app.ui.components.severityColor
@@ -126,7 +127,13 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Rounded.Psychology, null, tint = Color(0xFF6EE7B7), modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("ON-DEVICE AI", color = Color(0xFF6EE7B7), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                    Text(
+                        if (ai.onDevice) "ON-DEVICE AI · ${ai.model}" else "CLOUD AI · ${ai.model}",
+                        color = Color(0xFF6EE7B7),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.2.sp,
+                    )
                 }
                 Text(ai.whatHappened, color = Color.White, fontSize = 14.sp)
                 Text(ai.occupantState, color = Color(0xFFFECACA), fontSize = 13.sp)
@@ -152,6 +159,16 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
                 val photos = listOfNotNull(bb.cabinImagePath, bb.roadImagePath).size
                 if (photos > 0) {
                     Text("$photos camera photo(s) captured (cabin + road)", color = Color(0xFFFECACA), fontSize = 13.sp)
+                }
+                if (photos > 0 || bb.audioPath != null) {
+                    Spacer(Modifier.height(4.dp))
+                    CaptureEvidence(
+                        cabinPath = bb.cabinImagePath,
+                        roadPath = bb.roadImagePath,
+                        audioPath = bb.audioPath,
+                        audioDurationSec = bb.audioDurationSec,
+                        accent = Color(0xFF6EE7B7),
+                    )
                 }
             }
         }

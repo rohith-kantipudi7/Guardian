@@ -56,7 +56,7 @@ fun SettingsScreen(vm: GuardianViewModel, onPair: () -> Unit) {
         Text("Settings", style = MaterialTheme.typography.headlineSmall)
 
         SectionCard("Vehicle device") {
-            listOf(DeviceSource.CLOUD, DeviceSource.VIRTUAL).forEach { src ->
+            listOf(DeviceSource.NONE, DeviceSource.CLOUD, DeviceSource.VIRTUAL).forEach { src ->
                 Row(
                     Modifier.fillMaxWidth().clickable { vm.updateSettings { it.copy(deviceSource = src) } },
                     verticalAlignment = Alignment.CenterVertically,

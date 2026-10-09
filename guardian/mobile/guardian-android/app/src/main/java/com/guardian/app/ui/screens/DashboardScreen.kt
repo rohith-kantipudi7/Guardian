@@ -27,6 +27,7 @@ import androidx.compose.material.icons.rounded.GppGood
 import androidx.compose.material.icons.rounded.GppMaybe
 import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Inventory2
+import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.Router
 import androidx.compose.material.icons.rounded.Satellite
 import androidx.compose.material.icons.rounded.ScreenRotation
@@ -34,50 +35,60 @@ import androidx.compose.material.icons.rounded.Sensors
 import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.Smartphone
 import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.material.icons.rounded.Warning
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.guardian.app.data.settings.DeviceSource
 import com.guardian.app.domain.LinkState
 import com.guardian.app.ui.GuardianViewModel
+import com.guardian.app.ui.components.CaptureEvidence
 import com.guardian.app.ui.components.ChainLink
 import com.guardian.app.ui.components.ChainNode
 import com.guardian.app.ui.components.ConnectionChain
 import com.guardian.app.ui.components.Pill
 import com.guardian.app.ui.components.SectionCard
 import com.guardian.app.ui.components.StatusRow
-import com.guardian.app.ui.components.formatTimestamp
-import com.guardian.app.ui.components.severityColor
-import com.guardian.app.ui.components.statusText
+import com.guardian.app.ui.components.formatTimestampMs
 import com.guardian.app.ui.theme.BrandBrush
 import com.guardian.app.ui.theme.Critical
 import com.guardian.app.ui.theme.Muted
 import com.guardian.app.ui.theme.Ok
 import com.guardian.app.ui.theme.Warn
-import kotlin.math.roundToInt
 
 @Composable
 fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: () -> Unit) {
     val link by vm.link.collectAsStateWithLifecycle()
     val status by vm.status.collectAsStateWithLifecycle()
     val settings by vm.settings.collectAsStateWithLifecycle()
-    val history by vm.history.collectAsStateWithLifecycle()
+    val anomalies by vm.anomalies.collectAsStateWithLifecycle()
     val sensing by vm.phoneSensing.collectAsStateWithLifecycle()
+    val demoCapture by vm.demoCapture.collectAsStateWithLifecycle()
+    val capturing by vm.capturing.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val camerasArmed = ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) ==
+        android.content.pm.PackageManager.PERMISSION_GRANTED
     val linked = link == LinkState.CONNECTED
     val s = status
     val lte = s?.cellular == "CONNECTED"
-    val protected = s != null && lte
+    val deviceReady = s != null && lte
+    // Mobile is primary: the car is protected whenever the phone's own crash detection is running.
+    val protected = sensing.active
 
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -95,7 +106,7 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
                 Text("GUARDIAN", style = MaterialTheme.typography.headlineSmall, letterSpacing = 2.sp)
                 Text("${settings.vehicleName} · ${settings.vehicleRegistration}", color = Muted, fontSize = 13.sp)
             }
-            Pill(if (protected) "Protected" else if (s == null) "Offline" else "No signal", if (protected) Ok else Warn)
+            Pill(if (protected) "Protected" else "Unprotected", if (protected) Ok else Warn)
         }
 
         // Hero: is the car protected right now?
@@ -126,16 +137,16 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
                 Spacer(Modifier.width(16.dp))
                 Column {
                     Text(
-                        if (protected) "PROTECTED" else if (s == null) "NOT CONNECTED" else "NO MOBILE SIGNAL",
+                        if (protected) "PROTECTED" else "NOT PROTECTED",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Black,
                         color = if (protected) Ok else Warn,
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        if (protected) "Crash detection active."
-                        else if (s == null) "Not connected to a device."
-                        else "No mobile coverage — crashes are queued.",
+                        if (protected) "Phone crash detection is active." +
+                            (if (deviceReady) " Backup device online." else " No backup device connected.")
+                        else "Phone sensors unavailable — crash detection is off.",
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 14.sp,
                     )
@@ -146,7 +157,7 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
         SectionCard("Emergency path") {
             ConnectionChain(
                 nodes = listOf(
-                    ChainNode(Icons.Rounded.Smartphone, "Phone", linked),
+                    ChainNode(Icons.Rounded.Smartphone, "Phone", sensing.active),
                     ChainNode(Icons.Rounded.Router, "Device", s != null),
                     ChainNode(Icons.Rounded.Groups, "Responders", null),
                 ),
@@ -157,45 +168,85 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
             )
             if (!linked) {
                 Button(onClick = onPair, Modifier.fillMaxWidth()) {
-                    Text("Connect device")
+                    Text("Connect backup device")
                 }
             }
         }
 
-        SectionCard("Vehicle device") {
-            StatusRow("Mobile link (LTE)", s?.cellular?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "—", s?.let { lte }, Icons.Rounded.CellTower)
-            StatusRow("GPS", s?.gps?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "—", s?.let { it.gps == "AVAILABLE" }, Icons.Rounded.Satellite)
-            StatusRow("Backup battery", s?.battery?.let { "$it%" } ?: "—", s?.battery?.let { it > 20 }, Icons.Rounded.BatteryStd)
-            if ((s?.pendingEvents ?: 0) > 0) {
-                StatusRow("Waiting to send", "${s?.pendingEvents} crash report(s)", false, Icons.Rounded.Inventory2)
+        SectionCard("Backup device (IoT)") {
+            if (s == null) {
+                Text("No Guardian IoT device connected. The phone protects you on its own; pair the device as a backup black box.", color = Muted, fontSize = 13.sp)
+            } else {
+                StatusRow("Mobile link (LTE)", s.cellular?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "—", lte, Icons.Rounded.CellTower)
+                StatusRow("GPS", s.gps?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "—", s.gps == "AVAILABLE", Icons.Rounded.Satellite)
+                StatusRow("Backup battery", s.battery?.let { "$it%" } ?: "—", s.battery?.let { it > 20 }, Icons.Rounded.BatteryStd)
+                if ((s.pendingEvents ?: 0) > 0) {
+                    StatusRow("Waiting to send", "${s.pendingEvents} crash report(s)", false, Icons.Rounded.Inventory2)
+                }
             }
         }
 
         SectionCard("Phone sensing · primary") {
             StatusRow("Detection", if (sensing.active) "Active" else "Unavailable", sensing.active, Icons.Rounded.Sensors)
+            StatusRow(
+                "Cameras",
+                if (camerasArmed) "Armed · cabin + road" else "Permission needed",
+                camerasArmed,
+                Icons.Rounded.PhotoCamera,
+            )
             StatusRow("Impact force", "%.1f g".format(sensing.accelG), null, Icons.Rounded.Speed)
             StatusRow("Rotation", "%.1f rad/s".format(sensing.rotationRadS), null, Icons.Rounded.ScreenRotation)
         }
 
-        val last = history.firstOrNull()
-        SectionCard("Last incident", trailing = {
-            Text("History", color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, modifier = Modifier.clickable(onClick = onOpenHistory))
+        if (settings.demoMode) {
+            SectionCard("Capture test (demo)") {
+                Text(
+                    "Open both cameras and the mic now to demo the black-box capture — no crash needed.",
+                    color = Muted,
+                    fontSize = 13.sp,
+                )
+                Button(onClick = { vm.runCaptureDemo() }, enabled = !capturing, modifier = Modifier.fillMaxWidth()) {
+                    if (capturing) {
+                        CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
+                        Spacer(Modifier.width(10.dp))
+                        Text("Capturing…")
+                    } else {
+                        Icon(Icons.Rounded.PhotoCamera, null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Run capture test")
+                    }
+                }
+                demoCapture?.let { bb ->
+                    CaptureEvidence(bb.cabinImagePath, bb.roadImagePath, bb.audioPath, bb.audioDurationSec)
+                    TextButton(onClick = { vm.clearDemoCapture() }) { Text("Clear") }
+                }
+            }
+        }
+
+        val lastAnomaly = anomalies.firstOrNull()
+        SectionCard("Recent activity", trailing = {
+            Text("All", color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, modifier = Modifier.clickable(onClick = onOpenHistory))
             Icon(Icons.Rounded.ChevronRight, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
         }) {
-            if (last == null) {
-                Text("No crashes recorded. Drive safe.", color = Muted)
+            if (lastAnomaly == null) {
+                Text("No abnormal activity detected. Drive safe.", color = Muted)
             } else {
-                val (label, color) = statusText(last.status)
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Rounded.Warning,
+                        null,
+                        tint = if (lastAnomaly.critical) Critical else Warn,
+                        modifier = Modifier.size(20.dp).padding(end = 4.dp),
+                    )
+                    Spacer(Modifier.width(8.dp))
                     Column(Modifier.weight(1f)) {
                         Text(
-                            "${last.severity.name} · ${(last.confidence * 100).roundToInt()}%",
-                            color = severityColor(last.severity),
+                            lastAnomaly.type.label,
+                            color = if (lastAnomaly.critical) Critical else MaterialTheme.colorScheme.onSurface,
                             fontWeight = FontWeight.Black,
                         )
-                        Text(formatTimestamp(last.timestamp), color = Muted, fontSize = 13.sp)
+                        Text("${lastAnomaly.detail} · ${formatTimestampMs(lastAnomaly.timestampMs)}", color = Muted, fontSize = 13.sp)
                     }
-                    Pill(label, color)
                 }
             }
         }

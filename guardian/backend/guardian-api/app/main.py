@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import alerts, crashes, demo, devices, users, vehicles, ws
+from app.api import ai, alerts, crashes, demo, devices, users, vehicles, ws
 from app.config import get_settings
 from app.database import SessionLocal, init_db
 from app.realtime import broadcaster
@@ -64,6 +64,7 @@ def create_app() -> FastAPI:
         crashes.stats_router,
         alerts.router,
         demo.router,
+        ai.router,
         ws.router,
     ):
         app.include_router(r)

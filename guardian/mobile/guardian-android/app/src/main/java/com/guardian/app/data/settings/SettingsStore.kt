@@ -13,6 +13,7 @@ data class EmergencyContact(val name: String, val phone: String, val relationshi
 
 /** Where the app's "vehicle device" comes from. */
 enum class DeviceSource(val label: String, val detail: String) {
+    NONE("No device connected", "Phone is primary; connect your Guardian IoT device as backup"),
     VIRTUAL("Simulator (demo)", "Laptop simulator standing in for the vehicle device"),
     CLOUD("Guardian device", "Your vehicle's Guardian IoT device"),
     BLE("Real Guardian device (Bluetooth)", "ESP32 in the vehicle, over Bluetooth Low Energy"),
@@ -27,7 +28,7 @@ data class AppSettings(
     val deviceId: String = "GD-001",
     val vehicleName: String = "My Vehicle",
     val vehicleRegistration: String = "KA01GD0001",
-    val deviceSource: DeviceSource = DeviceSource.VIRTUAL,
+    val deviceSource: DeviceSource = DeviceSource.NONE,
     val demoMode: Boolean = true,
     val notifications: Boolean = true,
     val contacts: List<EmergencyContact> = emptyList(),

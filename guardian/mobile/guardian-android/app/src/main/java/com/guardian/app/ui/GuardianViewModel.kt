@@ -12,6 +12,8 @@ import com.guardian.app.data.capture.BlackBoxBundle
 import com.guardian.app.data.capture.ConversationCapture
 import com.guardian.app.data.capture.DualCameraCapture
 import com.guardian.app.data.capture.toTransferJson
+import com.guardian.app.data.sensing.AnomalyEvent
+import com.guardian.app.data.sensing.AnomalyType
 import com.guardian.app.data.sensing.PhoneCrashResult
 import com.guardian.app.data.sensing.PhoneSensing
 import com.guardian.app.data.sensing.PhoneSensingState
@@ -59,6 +61,7 @@ class GuardianViewModel(
     private val onDeviceAi: OnDeviceAi,
     private val conversationCapture: ConversationCapture,
     private val dualCameraCapture: DualCameraCapture,
+    private val alarmSiren: AlarmSiren?,
 ) : ViewModel() {
 
     val link: StateFlow<LinkState> = device.linkState
@@ -68,6 +71,17 @@ class GuardianViewModel(
     val phoneSensing: StateFlow<PhoneSensingState> = sensing.state
     val history: StateFlow<List<CrashEventRecord>> =
         repo.history.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    /** Abnormal-driving feed (hard braking, swerves, impacts, crashes), newest first. */
+    private val _anomalies = MutableStateFlow<List<AnomalyEvent>>(emptyList())
+    val anomalies: StateFlow<List<AnomalyEvent>> = _anomalies.asStateFlow()
+
+    /** Live demo: the real capture pipeline (dual camera + mic) run on demand, not from a crash. */
+    private val _demoCapture = MutableStateFlow<BlackBoxBundle?>(null)
+    val demoCapture: StateFlow<BlackBoxBundle?> = _demoCapture.asStateFlow()
+
+    private val _capturing = MutableStateFlow(false)
+    val capturing: StateFlow<Boolean> = _capturing.asStateFlow()
 
     private val _alert = MutableStateFlow<EmergencyAlert?>(null)
     val alert: StateFlow<EmergencyAlert?> = _alert.asStateFlow()
@@ -80,7 +94,43 @@ class GuardianViewModel(
         viewModelScope.launch { device.events.collect(::onDeviceEvent) }
         viewModelScope.launch { repo.liveCrashes.collect(::onLiveCrash) }
         viewModelScope.launch { sensing.crashes.collect(::onPhoneCrash) }
+        viewModelScope.launch { sensing.anomalies.collect(::addAnomaly) }
         if (device.source != DeviceSource.BLE) device.connect()
+    }
+
+    private fun addAnomaly(a: AnomalyEvent) {
+        _anomalies.value = (listOf(a) + _anomalies.value).take(50)
+        // Warn the driver on abnormal driving (a crash raises the full emergency instead).
+        if (a.type != AnomalyType.CRASH) {
+            _message.value = "⚠ ${a.type.label} · ${a.detail}"
+            if (settings.value.notifications) notifier?.warn("Abnormal driving", "${a.type.label} · ${a.detail}")
+        }
+    }
+
+    /** Runs the real dual-camera + microphone capture now so the pipeline can be demoed live. */
+    fun runCaptureDemo() = viewModelScope.launch {
+        if (_capturing.value) return@launch
+        _capturing.value = true
+        _message.value = "Capturing cabin + road photos and voice…"
+        val photos = dualCameraCapture.capture()
+        val clip = conversationCapture.capture()
+        _demoCapture.value = BlackBoxBundle(
+            capturedAtMs = System.currentTimeMillis(),
+            audioPath = clip?.path,
+            audioDurationSec = clip?.durationSec ?: 0,
+            cabinImagePath = photos.cabinPath,
+            roadImagePath = photos.roadPath,
+            sensorLog = "capture test",
+            transcript = null,
+            assessment = null,
+        )
+        _capturing.value = false
+        val n = listOfNotNull(photos.cabinPath, photos.roadPath).size
+        _message.value = "Captured $n photo(s)" + (clip?.let { " + ${it.durationSec}s audio" } ?: "")
+    }
+
+    fun clearDemoCapture() {
+        _demoCapture.value = null
     }
 
     /** Backend view of this vehicle's crashes: who was alerted and how far help has got. */
@@ -91,6 +141,7 @@ class GuardianViewModel(
         when {
             current != null && current.eventId == e.eventId && closed -> {
                 _alert.value = null
+                alarmSiren?.stop()
                 _message.value = if (e.status == "RESOLVED") "Incident closed" else "Incident cancelled - responders stood down"
             }
             current != null && (current.eventId == e.eventId || (current.eventId == null && c.type == "CRASH_DETECTED")) ->
@@ -117,6 +168,7 @@ class GuardianViewModel(
                     responders = c.responders,
                 )
                 if (settings.value.notifications) notifier?.crash("CRASH DETECTED", "${e.severity} - police, ambulance & family alerted")
+                alarmSiren?.start()
             }
             c.type == "CRASH_DETECTED" ->
                 _message.value = "${e.severity} crash was reported by your vehicle device while this phone was disconnected"
@@ -133,6 +185,7 @@ class GuardianViewModel(
             if (startedNew && settings.value.notifications) {
                 notifier?.crash("CRASH DETECTED", "${c.severity ?: ""} - tap to respond")
             }
+            if (startedNew) alarmSiren?.start()
         } else if (current != null) {
             _alert.value = current.copy(state = c.state)
         }
@@ -154,6 +207,16 @@ class GuardianViewModel(
             confidence = r.confidence,
             verifyRemainingMs = null,
             startedAtMs = System.currentTimeMillis(),
+        )
+        alarmSiren?.start()
+        addAnomaly(
+            AnomalyEvent(
+                AnomalyType.CRASH,
+                "${r.severity.name} · ${(r.confidence * 100).toInt()}%",
+                r.accelPeakG,
+                System.currentTimeMillis(),
+                critical = r.severity == Severity.CRITICAL,
+            ),
         )
         if (settings.value.notifications) {
             notifier?.crash("CRASH DETECTED", "${r.severity} impact detected on your phone")
@@ -188,12 +251,14 @@ class GuardianViewModel(
     fun simulatePhoneCrash() = sensing.simulateCrash()
 
     fun imSafe() = viewModelScope.launch {
+        alarmSiren?.stop()
         val result = repo.cancelEmergency(_alert.value?.eventId)
         _message.value = "I'M SAFE: $result"
         _alert.value = null
     }
 
     fun dismissAlert() {
+        alarmSiren?.stop()
         _alert.value = null
     }
 

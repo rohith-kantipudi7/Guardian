@@ -23,6 +23,10 @@
 #ifndef GUARDIAN_BATTERY_ADC
 #define GUARDIAN_BATTERY_ADC 0
 #endif
+// Active buzzer on a GPIO for the local audible alarm. Off by default (no hardware).
+#ifndef GUARDIAN_BUZZER
+#define GUARDIAN_BUZZER 0
+#endif
 // Require an encrypted (bonded) BLE link for characteristic access.
 #ifndef GUARDIAN_BLE_REQUIRE_ENCRYPTION
 #define GUARDIAN_BLE_REQUIRE_ENCRYPTION 0
@@ -60,5 +64,7 @@ constexpr int PIN_OBD_TX = 33;
 constexpr uint32_t OBD_BAUD = 38400;
 // Battery sense through a 1:1 divider
 constexpr int PIN_BATTERY_ADC = 35;
+// Active buzzer (HIGH = sound). Drives the local emergency alarm.
+constexpr int PIN_BUZZER = 25;
 
 }  // namespace guardian::config

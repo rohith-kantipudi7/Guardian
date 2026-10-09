@@ -13,8 +13,9 @@ namespace guardian {
 
 GuardianDevice::GuardianDevice(ImuSensor& imu, GnssProvider& gnss, VehicleTelemetryProvider& vehicle,
                                BatteryProvider& battery, CellularProvider& cellular, BleProvider& ble,
-                               EventQueue& queue)
-    : imu_(imu), gnss_(gnss), vehicle_(vehicle), battery_(battery), cellular_(cellular), ble_(ble), queue_(queue) {}
+                               EventQueue& queue, AlertSignal& alert)
+    : imu_(imu), gnss_(gnss), vehicle_(vehicle), battery_(battery), cellular_(cellular), ble_(ble), queue_(queue),
+      alert_(alert) {}
 
 void GuardianDevice::begin() {
     queueMutex_ = xSemaphoreCreateMutex();
@@ -27,6 +28,7 @@ void GuardianDevice::begin() {
     detector_.setListener(stateThunk, this);
     cachedStatus_ = snapshot();
     ble_.start();
+    alert_.begin();
     // Network work runs on core 0 so HTTP/modem latency never stalls 100 Hz sensing on core 1.
     xTaskCreatePinnedToCore(networkTaskEntry, "guardian-net", 12288, this, 1, &netTask_, 0);
     Serial.printf("[guardian] %s firmware %s ready (%u queued events)\n", GUARDIAN_DEVICE_ID,
@@ -62,6 +64,14 @@ void GuardianDevice::loop() {
         xSemaphoreGive(statusMutex_);
         ble_.notify(s);
     }
+    // Backup alarm: the phone handed off its black box (it may be destroyed) -> sound off locally.
+    std::string blackbox;
+    if (ble_.consumeBlackBox(blackbox)) {
+        Serial.printf("[blackbox] received from phone (%u bytes) - sounding local alarm\n",
+                      static_cast<unsigned>(blackbox.size()));
+        alert_.triggerFromPhone(now);
+    }
+    alert_.update(detector_.state(), now);
     handleCommands();
 }
 

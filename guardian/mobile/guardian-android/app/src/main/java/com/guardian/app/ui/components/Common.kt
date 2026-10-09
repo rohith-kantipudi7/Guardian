@@ -193,6 +193,8 @@ private val dateFmt = DateTimeFormatter.ofPattern("dd MMM, HH:mm").withZone(Zone
 
 fun formatTimestamp(iso: String): String = runCatching { dateFmt.format(Instant.parse(iso)) }.getOrDefault(iso)
 
+fun formatTimestampMs(ms: Long): String = runCatching { dateFmt.format(Instant.ofEpochMilli(ms)) }.getOrDefault("—")
+
 fun statusText(status: String): Pair<String, Color> = when (status) {
     "EMERGENCY_ACTIVE" -> "Responders alerted" to Critical
     "ACKNOWLEDGED" -> "Seen by responders" to Ok

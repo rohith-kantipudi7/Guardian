@@ -2,6 +2,8 @@
 // Hardware abstraction interfaces. Every interface has a mock and (where hardware exists)
 // a real implementation, selected at build time in main.cpp.
 
+#include <string>
+
 #include "guardian_types.h"
 
 namespace guardian {
@@ -37,6 +39,18 @@ class BatteryProvider {
 public:
     virtual ~BatteryProvider() = default;
     virtual uint8_t percent() = 0;
+};
+
+// Local audible alarm (active buzzer). Backup alert that draws bystanders to the vehicle, and
+// the device's own way to sound off when the phone has handed over its black box and gone dark.
+class AlertSignal {
+public:
+    virtual ~AlertSignal() = default;
+    virtual void begin() = 0;
+    // Drives the non-blocking beep pattern from the live crash state; call every loop.
+    virtual void update(CrashState state, uint32_t nowMs) = 0;
+    // The phone streamed its black box and may be destroyed: latch the full alarm locally.
+    virtual void triggerFromPhone(uint32_t nowMs) = 0;
 };
 
 // The independent emergency path. Must never depend on the phone.
@@ -82,6 +96,11 @@ public:
     virtual void notifyCrashState(CrashState state, const CrashResult* result, uint32_t verifyRemainingMs) = 0;
     virtual void notifyEvent(const CrashEvent& event, bool delivered) = 0;
     virtual bool pollCommand(BleCommand& out) = 0;
+    // Returns true once when the phone has finished streaming a black box bundle (chunked).
+    virtual bool consumeBlackBox(std::string& out) {
+        (void)out;
+        return false;
+    }
 };
 
 }  // namespace guardian

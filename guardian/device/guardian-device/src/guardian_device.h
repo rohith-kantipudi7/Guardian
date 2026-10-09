@@ -21,7 +21,7 @@ namespace guardian {
 class GuardianDevice {
 public:
     GuardianDevice(ImuSensor& imu, GnssProvider& gnss, VehicleTelemetryProvider& vehicle, BatteryProvider& battery,
-                   CellularProvider& cellular, BleProvider& ble, EventQueue& queue);
+                   CellularProvider& cellular, BleProvider& ble, EventQueue& queue, AlertSignal& alert);
 
     void begin();
     void loop();
@@ -53,7 +53,7 @@ private:
     CellularProvider& cellular_;
     BleProvider& ble_;
     EventQueue& queue_;
-
+    AlertSignal& alert_;
     CrashDetector detector_;
     ScenarioPlayer sim_;
     bool simActive_ = false;

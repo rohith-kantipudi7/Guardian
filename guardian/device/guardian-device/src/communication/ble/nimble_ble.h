@@ -22,6 +22,7 @@ public:
     void notifyCrashState(CrashState state, const CrashResult* result, uint32_t verifyRemainingMs) override;
     void notifyEvent(const CrashEvent& event, bool delivered) override;
     bool pollCommand(BleCommand& out) override;
+    bool consumeBlackBox(std::string& out) override;
 
 private:
     // NimBLE-Arduino 1.4.x callback signatures
@@ -47,6 +48,7 @@ private:
     NimBLECharacteristic* blackbox_ = nullptr;
     std::string blackboxBuf_;
     String blackbox_json_;
+    volatile bool blackboxReady_ = false;
 };
 
 }  // namespace guardian

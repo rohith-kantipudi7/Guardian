@@ -92,6 +92,7 @@ void NimbleBle::onWrite(NimBLECharacteristic* c) {
         for (char ch : v) {
             if (ch == '\x04') {
                 blackbox_json_ = String(blackboxBuf_.c_str());
+                blackboxReady_ = true;
                 Serial.printf("[ble] black box received (%u bytes): %s\n",
                               static_cast<unsigned>(blackboxBuf_.size()), blackboxBuf_.c_str());
                 blackboxBuf_.clear();
@@ -112,6 +113,13 @@ void NimbleBle::onWrite(NimBLECharacteristic* c) {
 
 bool NimbleBle::pollCommand(BleCommand& out) {
     return commands_ && xQueueReceive(commands_, &out, 0) == pdTRUE;
+}
+
+bool NimbleBle::consumeBlackBox(std::string& out) {
+    if (!blackboxReady_) return false;
+    blackboxReady_ = false;
+    out = blackbox_json_.c_str();
+    return true;
 }
 
 void NimbleBle::notify(const DeviceStatus& s) {

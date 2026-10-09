@@ -16,8 +16,8 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0"
-        // Emulator -> host machine. On the iQOO phone set the laptop's LAN IP in Settings.
-        buildConfigField("String", "DEFAULT_BACKEND_URL", "\"http://10.0.2.2:8000\"")
+        // Default backend/LAN address. Override any time in Settings -> Servers -> Backend URL.
+        buildConfigField("String", "DEFAULT_BACKEND_URL", "\"http://10.239.116.232:8000\"")
     }
 
     buildTypes {

@@ -6,6 +6,7 @@
 #include "communication/ble/nimble_ble.h"
 #include "config/device_config.h"
 #include "guardian_device.h"
+#include "io/buzzer.h"
 #include "sensors/mock_sensors.h"
 #include "storage/littlefs_storage.h"
 
@@ -67,7 +68,12 @@ MockCellularProvider cellular;
 NimbleBle ble(GUARDIAN_DEVICE_ID);
 LittleFsQueueStorage storage;
 EventQueue queue(&storage);
-GuardianDevice device(imu, gnss, vehicle, battery, cellular, ble, queue);
+#if GUARDIAN_BUZZER
+GpioBuzzer alert(config::PIN_BUZZER);
+#else
+MockAlertSignal alert;
+#endif
+GuardianDevice device(imu, gnss, vehicle, battery, cellular, ble, queue, alert);
 
 String line;
 
