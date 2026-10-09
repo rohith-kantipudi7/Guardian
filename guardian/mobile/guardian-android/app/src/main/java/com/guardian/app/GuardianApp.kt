@@ -8,6 +8,7 @@ import com.guardian.app.data.ai.LlmModelManager
 import com.guardian.app.data.ai.OnDeviceAi
 import com.guardian.app.data.ble.BleGuardianDeviceClient
 import com.guardian.app.data.capture.ConversationCapture
+import com.guardian.app.data.cloud.CloudDeviceClient
 import com.guardian.app.data.local.GuardianDatabase
 import com.guardian.app.data.mock.MockGuardianDeviceClient
 import com.guardian.app.data.sensing.PhoneSensing
@@ -26,6 +27,11 @@ class AppContainer(app: Application) {
     val device = SwitchableDeviceClient(
         clients = mapOf(
             DeviceSource.VIRTUAL to VirtualDeviceClient(scope, baseUrl = { settings.settings.value.virtualDeviceUrl }),
+            DeviceSource.CLOUD to CloudDeviceClient(
+                scope,
+                baseUrl = { settings.settings.value.backendUrl },
+                deviceId = { settings.settings.value.deviceId },
+            ),
             DeviceSource.BLE to BleGuardianDeviceClient(app, scope),
             DeviceSource.MOCK to MockGuardianDeviceClient(scope),
         ),

@@ -63,7 +63,9 @@ class BleGuardianDeviceClient(
     private val scope: CoroutineScope,
 ) : GuardianDeviceClient {
 
-    private val adapter = context.getSystemService(BluetoothManager::class.java)?.adapter
+    // Re-fetched each use: on some OEMs the adapter is not ready at app-startup construction.
+    private val adapter: android.bluetooth.BluetoothAdapter?
+        get() = context.getSystemService(BluetoothManager::class.java)?.adapter
 
     private val _link = MutableStateFlow(LinkState.DISCONNECTED)
     private val _status = MutableStateFlow<DeviceStatus?>(null)
@@ -86,7 +88,11 @@ class BleGuardianDeviceClient(
     override fun connect() {
         autoReconnect = true
         reconnectJob?.cancel()
-        if (_link.value == LinkState.DISCONNECTED) startScan()
+        Log.i(TAG, "connect() requested, link=${_link.value}")
+        if (_link.value == LinkState.CONNECTED) return
+        stopScan()
+        _link.value = LinkState.DISCONNECTED
+        startScan()
     }
 
     override fun disconnect(userInitiated: Boolean) {
@@ -151,6 +157,9 @@ class BleGuardianDeviceClient(
     private val scanCallback = object : ScanCallback() {
         override fun onScanResult(callbackType: Int, result: ScanResult) {
             if (_link.value != LinkState.SCANNING) return
+            val name = result.scanRecord?.deviceName ?: result.device.name
+            if (name == null || !name.startsWith(GuardianBleUuids.DEVICE_NAME_PREFIX)) return
+            Log.i(TAG, "found $name (${result.device.address})")
             stopScan()
             connectTo(result.device)
         }
@@ -165,17 +174,19 @@ class BleGuardianDeviceClient(
     private fun startScan() {
         val scanner = adapter?.bluetoothLeScanner
         if (scanner == null || adapter?.isEnabled != true || !BlePermissions.granted(context)) {
-            Log.w(TAG, "BLE unavailable or permission missing")
+            Log.w(TAG, "BLE unavailable: adapter=${adapter != null} enabled=${adapter?.isEnabled} scanner=${scanner != null} perms=${BlePermissions.granted(context)}")
             _link.value = LinkState.DISCONNECTED
             return
         }
         _link.value = LinkState.SCANNING
-        val filter = ScanFilter.Builder().setServiceUuid(ParcelUuid(GuardianBleUuids.SERVICE)).build()
+        // Match by name in the callback: the 128-bit service UUID often will not fit the advert packet.
         val settings = ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
-        scanner.startScan(listOf(filter), settings, scanCallback)
+        scanner.startScan(null, settings, scanCallback)
+        Log.i(TAG, "scanning for ${GuardianBleUuids.DEVICE_NAME_PREFIX}* devices")
         scanTimeoutJob = scope.launch {
             delay(SCAN_TIMEOUT_MS)
             if (_link.value == LinkState.SCANNING) {
+                Log.w(TAG, "scan timeout - no ${GuardianBleUuids.DEVICE_NAME_PREFIX} device found")
                 stopScan()
                 _link.value = LinkState.DISCONNECTED
                 scheduleReconnect()

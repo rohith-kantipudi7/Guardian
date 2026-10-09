@@ -42,6 +42,12 @@ data class DeviceDto(
     val phoneConnected: Boolean = false,
     val cellularStatus: String? = null,
     val lastHeartbeat: String? = null,
+    val batteryLevel: Int? = null,
+    val gpsStatus: String? = null,
+    val lastLatitude: Double? = null,
+    val lastLongitude: Double? = null,
+    val vehicleConnected: Boolean = false,
+    val firmwareVersion: String? = null,
 )
 
 /** Subset of the backend contract the phone needs (docs/api.md). */
