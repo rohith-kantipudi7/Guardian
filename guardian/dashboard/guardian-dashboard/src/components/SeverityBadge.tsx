@@ -3,7 +3,18 @@ import { severityColor, statusHex, statusLabel } from '../format';
 import type { CrashStatus, Severity } from '../types';
 
 export function SeverityBadge({ severity, size = 'small' }: { severity: Severity; size?: 'small' | 'medium' }) {
-  return <Chip label={severity} color={severityColor[severity]} size={size} sx={{ fontWeight: 800 }} />;
+  return (
+    <Chip
+      label={severity}
+      color={severityColor[severity]}
+      size={size}
+      sx={{
+        fontWeight: 800,
+        letterSpacing: 0.5,
+        ...(severity === 'CRITICAL' && { boxShadow: '0 0 0 0 rgba(244,63,94,.5)', animation: 'guardianAlertPulse 2s infinite' }),
+      }}
+    />
+  );
 }
 
 export function StatusBadge({ status }: { status: CrashStatus }) {

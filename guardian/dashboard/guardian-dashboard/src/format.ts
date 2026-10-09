@@ -31,7 +31,7 @@ export const severityHex: Record<Severity, string> = {
   NORMAL: '#94a3b8',
   MINOR: '#38bdf8',
   MODERATE: '#f59e0b',
-  CRITICAL: '#ef4444',
+  CRITICAL: '#f43f5e',
 };
 
 export const statusLabel: Record<CrashStatus, string> = {
@@ -46,7 +46,7 @@ export const statusLabel: Record<CrashStatus, string> = {
 export const statusHex: Record<CrashStatus, string> = {
   DETECTED: '#38bdf8',
   VERIFYING: '#f59e0b',
-  EMERGENCY_ACTIVE: '#ef4444',
+  EMERGENCY_ACTIVE: '#f43f5e',
   ACKNOWLEDGED: '#f59e0b',
   RESOLVED: '#22c55e',
   CANCELLED: '#94a3b8',
