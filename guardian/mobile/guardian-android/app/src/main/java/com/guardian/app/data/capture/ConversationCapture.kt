@@ -167,6 +167,6 @@ class ConversationCapture(private val context: Context) {
 
     private companion object {
         const val PRE_SECONDS = 12
-        const val POST_SECONDS = 15
+        const val POST_SECONDS = 10
     }
 }

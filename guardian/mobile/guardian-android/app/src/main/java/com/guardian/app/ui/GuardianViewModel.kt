@@ -111,20 +111,26 @@ class GuardianViewModel(
     fun runCaptureDemo() = viewModelScope.launch {
         if (_capturing.value) return@launch
         _capturing.value = true
-        _message.value = "Capturing cabin + road photos and voice (before + after)…"
+        _message.value = "Opening cameras…"
         val photos = dualCameraCapture.capture()
-        val audio = conversationCapture.captureAroundCrash(postSeconds = 6)
+        // Show the photos right away, then fill in the audio once recorded.
         _demoCapture.value = BlackBoxBundle(
             capturedAtMs = System.currentTimeMillis(),
-            audioPath = audio.postPath,
-            audioDurationSec = audio.postDurationSec,
-            preAudioPath = audio.prePath,
-            preAudioDurationSec = audio.preDurationSec,
+            audioPath = null,
+            audioDurationSec = 0,
             cabinImagePath = photos.cabinPath,
             roadImagePath = photos.roadPath,
             sensorLog = "capture test",
             transcript = null,
             assessment = null,
+        )
+        _message.value = "Recording voice (before + after)…"
+        val audio = conversationCapture.captureAroundCrash(postSeconds = 5)
+        _demoCapture.value = _demoCapture.value?.copy(
+            audioPath = audio.postPath,
+            audioDurationSec = audio.postDurationSec,
+            preAudioPath = audio.prePath,
+            preAudioDurationSec = audio.preDurationSec,
         )
         _capturing.value = false
         conversationCapture.startPreBuffer(viewModelScope) // resume the rolling pre-impact buffer
@@ -229,6 +235,18 @@ class GuardianViewModel(
         viewModelScope.launch {
             val photos = dualCameraCapture.capture()
             val imageCount = listOfNotNull(photos.cabinPath, photos.roadPath).size
+            // Show the captured photos immediately, before the (longer) audio clip finishes recording.
+            val photoOnly = BlackBoxBundle(
+                capturedAtMs = System.currentTimeMillis(),
+                audioPath = null,
+                audioDurationSec = 0,
+                cabinImagePath = photos.cabinPath,
+                roadImagePath = photos.roadPath,
+                sensorLog = "peak ${"%.1f".format(r.accelPeakG)} g · rot ${"%.1f".format(r.rotationPeakRadS)} rad/s",
+                transcript = null,
+                assessment = null,
+            )
+            _alert.value = _alert.value?.copy(blackBox = photoOnly)
             val assessment = onDeviceAi.assess(
                 CrashContext(
                     severity = r.severity,
@@ -240,19 +258,17 @@ class GuardianViewModel(
                     imageCount = imageCount,
                 ),
             )
-            _alert.value = _alert.value?.copy(aiAssessment = assessment)
+            _alert.value = _alert.value?.copy(
+                aiAssessment = assessment,
+                blackBox = _alert.value?.blackBox?.copy(assessment = assessment),
+            )
             // Before + after in-cabin audio (the pre-buffer already holds the seconds before impact).
             val audio = conversationCapture.captureAroundCrash()
-            val bundle = BlackBoxBundle(
-                capturedAtMs = System.currentTimeMillis(),
+            val bundle = photoOnly.copy(
                 audioPath = audio.postPath,
                 audioDurationSec = audio.postDurationSec,
                 preAudioPath = audio.prePath,
                 preAudioDurationSec = audio.preDurationSec,
-                cabinImagePath = photos.cabinPath,
-                roadImagePath = photos.roadPath,
-                sensorLog = "peak ${"%.1f".format(r.accelPeakG)} g · rot ${"%.1f".format(r.rotationPeakRadS)} rad/s",
-                transcript = null,
                 assessment = assessment,
             )
             _alert.value = _alert.value?.copy(blackBox = bundle)

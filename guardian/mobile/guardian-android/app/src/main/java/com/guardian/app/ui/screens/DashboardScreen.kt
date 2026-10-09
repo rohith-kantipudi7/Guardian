@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -67,6 +68,7 @@ import com.guardian.app.ui.components.StatusRow
 import com.guardian.app.ui.components.formatTimestampMs
 import com.guardian.app.ui.theme.BrandBrush
 import com.guardian.app.ui.theme.Critical
+import com.guardian.app.ui.theme.Line
 import com.guardian.app.ui.theme.Muted
 import com.guardian.app.ui.theme.Ok
 import com.guardian.app.ui.theme.Warn
@@ -122,34 +124,77 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
                 .border(1.dp, (if (protected) Ok else Warn).copy(alpha = 0.35f), MaterialTheme.shapes.large)
                 .padding(20.dp),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    Modifier.size(64.dp).background((if (protected) Ok else Warn).copy(alpha = 0.16f), CircleShape),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(
-                        if (protected) Icons.Rounded.GppGood else Icons.Rounded.GppMaybe,
-                        null,
-                        tint = if (protected) Ok else Warn,
-                        modifier = Modifier.size(38.dp),
-                    )
+            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        Modifier.size(64.dp).background((if (protected) Ok else Warn).copy(alpha = 0.16f), CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            if (protected) Icons.Rounded.GppGood else Icons.Rounded.GppMaybe,
+                            null,
+                            tint = if (protected) Ok else Warn,
+                            modifier = Modifier.size(38.dp),
+                        )
+                    }
+                    Spacer(Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            if (protected) "PROTECTED" else "NOT PROTECTED",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Black,
+                            color = if (protected) Ok else Warn,
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            if (protected) "Phone crash detection is live." +
+                                (if (deviceReady) " Backup device online." else " No backup device connected.")
+                            else "Phone sensors unavailable — crash detection is off.",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontSize = 14.sp,
+                        )
+                    }
                 }
-                Spacer(Modifier.width(16.dp))
-                Column {
-                    Text(
-                        if (protected) "PROTECTED" else "NOT PROTECTED",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Black,
-                        color = if (protected) Ok else Warn,
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    StatChip("Impact", "%.1f g".format(sensing.accelG), Icons.Rounded.Speed, if (protected) Ok else Muted)
+                    StatChip("Rotation", "%.1f".format(sensing.rotationRadS), Icons.Rounded.ScreenRotation, if (protected) Ok else Muted)
+                    StatChip("Cameras", if (camerasArmed) "Armed" else "Off", Icons.Rounded.PhotoCamera, if (camerasArmed) Ok else Warn)
+                }
+            }
+        }
+
+        if (settings.demoMode) {
+            SectionCard("Black-box capture · demo") {
+                Text(
+                    "Opens both cameras + the mic now and records voice before and after — the real crash pipeline, no impact needed.",
+                    color = Muted,
+                    fontSize = 13.sp,
+                )
+                Button(
+                    onClick = { vm.runCaptureDemo() },
+                    enabled = !capturing,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                ) {
+                    if (capturing) {
+                        CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
+                        Spacer(Modifier.width(10.dp))
+                        Text("Capturing…", fontWeight = FontWeight.Bold)
+                    } else {
+                        Icon(Icons.Rounded.PhotoCamera, null, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Run capture test", fontWeight = FontWeight.Bold)
+                    }
+                }
+                demoCapture?.let { bb ->
+                    CaptureEvidence(
+                        cabinPath = bb.cabinImagePath,
+                        roadPath = bb.roadImagePath,
+                        audioPath = bb.audioPath,
+                        audioDurationSec = bb.audioDurationSec,
+                        preAudioPath = bb.preAudioPath,
+                        preAudioDurationSec = bb.preAudioDurationSec,
                     )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        if (protected) "Phone crash detection is active." +
-                            (if (deviceReady) " Backup device online." else " No backup device connected.")
-                        else "Phone sensors unavailable — crash detection is off.",
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 14.sp,
-                    )
+                    TextButton(onClick = { vm.clearDemoCapture() }) { Text("Clear") }
                 }
             }
         }
@@ -186,50 +231,6 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
             }
         }
 
-        SectionCard("Phone sensing · primary") {
-            StatusRow("Detection", if (sensing.active) "Active" else "Unavailable", sensing.active, Icons.Rounded.Sensors)
-            StatusRow(
-                "Cameras",
-                if (camerasArmed) "Armed · cabin + road" else "Permission needed",
-                camerasArmed,
-                Icons.Rounded.PhotoCamera,
-            )
-            StatusRow("Impact force", "%.1f g".format(sensing.accelG), null, Icons.Rounded.Speed)
-            StatusRow("Rotation", "%.1f rad/s".format(sensing.rotationRadS), null, Icons.Rounded.ScreenRotation)
-        }
-
-        if (settings.demoMode) {
-            SectionCard("Capture test (demo)") {
-                Text(
-                    "Open both cameras and the mic now to demo the black-box capture — no crash needed.",
-                    color = Muted,
-                    fontSize = 13.sp,
-                )
-                Button(onClick = { vm.runCaptureDemo() }, enabled = !capturing, modifier = Modifier.fillMaxWidth()) {
-                    if (capturing) {
-                        CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
-                        Spacer(Modifier.width(10.dp))
-                        Text("Capturing…")
-                    } else {
-                        Icon(Icons.Rounded.PhotoCamera, null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("Run capture test")
-                    }
-                }
-                demoCapture?.let { bb ->
-                    CaptureEvidence(
-                        cabinPath = bb.cabinImagePath,
-                        roadPath = bb.roadImagePath,
-                        audioPath = bb.audioPath,
-                        audioDurationSec = bb.audioDurationSec,
-                        preAudioPath = bb.preAudioPath,
-                        preAudioDurationSec = bb.preAudioDurationSec,
-                    )
-                    TextButton(onClick = { vm.clearDemoCapture() }) { Text("Clear") }
-                }
-            }
-        }
-
         val lastAnomaly = anomalies.firstOrNull()
         SectionCard("Recent activity", trailing = {
             Text("All", color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, modifier = Modifier.clickable(onClick = onOpenHistory))
@@ -258,5 +259,21 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
             }
         }
         Spacer(Modifier.height(8.dp))
+    }
+}
+
+@Composable
+private fun RowScope.StatChip(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: Color) {
+    Column(
+        Modifier
+            .weight(1f)
+            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.55f), RoundedCornerShape(14.dp))
+            .border(1.dp, Line, RoundedCornerShape(14.dp))
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Icon(icon, null, tint = tint, modifier = Modifier.size(18.dp))
+        Text(value, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Black, fontSize = 15.sp)
+        Text(label, color = Muted, fontSize = 11.sp)
     }
 }
