@@ -22,7 +22,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CarCrash
+import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.LocationOn
+import androidx.compose.material.icons.rounded.Psychology
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -111,6 +113,37 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
                     Spacer(Modifier.width(10.dp))
                 }
                 Text(headline, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
+        }
+
+        alert.aiAssessment?.let { ai ->
+            Column(
+                Modifier.fillMaxWidth()
+                    .background(Color(0x22000000), androidx.compose.material3.MaterialTheme.shapes.medium)
+                    .padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.Psychology, null, tint = Color(0xFF93C5FD), modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("ON-DEVICE AI", color = Color(0xFF93C5FD), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                }
+                Text(ai.whatHappened, color = Color.White, fontSize = 14.sp)
+                Text(ai.occupantState, color = Color(0xFFFECACA), fontSize = 13.sp)
+                Text(ai.recommendation, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            }
+        }
+
+        alert.blackBox?.let { bb ->
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Rounded.GraphicEq, null, tint = Color(0xFF93C5FD), modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    if (bb.audioPath != null) "In-cabin audio captured (${bb.audioDurationSec}s) · stored for black box"
+                    else "Black box: sensor log stored",
+                    color = Color(0xFFFECACA),
+                    fontSize = 13.sp,
+                )
             }
         }
 

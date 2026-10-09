@@ -29,8 +29,11 @@ import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.material.icons.rounded.Inventory2
 import androidx.compose.material.icons.rounded.Router
 import androidx.compose.material.icons.rounded.Satellite
+import androidx.compose.material.icons.rounded.ScreenRotation
+import androidx.compose.material.icons.rounded.Sensors
 import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.Smartphone
+import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -70,6 +73,7 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
     val status by vm.status.collectAsStateWithLifecycle()
     val settings by vm.settings.collectAsStateWithLifecycle()
     val history by vm.history.collectAsStateWithLifecycle()
+    val sensing by vm.phoneSensing.collectAsStateWithLifecycle()
     val linked = link == LinkState.CONNECTED
     val s = status
     val lte = s?.cellular == "CONNECTED"
@@ -129,9 +133,9 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        if (protected) "Crash detection is running on your vehicle device."
-                        else if (s == null) "Connect to the vehicle device to see its status."
-                        else "No mobile coverage. Crashes are stored and sent when coverage returns.",
+                        if (protected) "Crash detection active."
+                        else if (s == null) "Not connected to a device."
+                        else "No mobile coverage — crashes are queued.",
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 14.sp,
                     )
@@ -139,13 +143,13 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
             }
         }
 
-        SectionCard("How the emergency reaches help") {
+        SectionCard("Emergency path") {
             ConnectionChain(
                 nodes = listOf(
-                    ChainNode(Icons.Rounded.Smartphone, "This\nphone", linked),
-                    ChainNode(Icons.Rounded.Router, "Vehicle\ndevice", s != null),
-                    ChainNode(Icons.Rounded.Cloud, "Guardian\ncloud", if (s == null) null else lte),
-                    ChainNode(Icons.Rounded.Groups, "Police ·\nAmbulance ·\nFamily", null),
+                    ChainNode(Icons.Rounded.Smartphone, "Phone", linked),
+                    ChainNode(Icons.Rounded.Router, "Device", s != null),
+                    ChainNode(Icons.Rounded.Cloud, "Cloud", if (s == null) null else lte),
+                    ChainNode(Icons.Rounded.Groups, "Help", null),
                 ),
                 links = listOf(
                     ChainLink("BLE", linked),
@@ -153,15 +157,9 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
                     ChainLink("SMS", null),
                 ),
             )
-            Text(
-                "The device detects the crash and calls for help over its own mobile link. " +
-                    "This phone only shows alerts and lets you say I'M SAFE — it is not needed for help to come.",
-                color = Muted,
-                fontSize = 12.sp,
-            )
             if (!linked) {
                 Button(onClick = onPair, Modifier.fillMaxWidth()) {
-                    Text(if (settings.deviceSource == DeviceSource.BLE) "Connect Guardian device" else "Connect to vehicle device")
+                    Text("Connect device")
                 }
             }
         }
@@ -173,6 +171,12 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
             if ((s?.pendingEvents ?: 0) > 0) {
                 StatusRow("Waiting to send", "${s?.pendingEvents} crash report(s)", false, Icons.Rounded.Inventory2)
             }
+        }
+
+        SectionCard("Phone sensing · primary") {
+            StatusRow("Detection", if (sensing.active) "Active" else "Unavailable", sensing.active, Icons.Rounded.Sensors)
+            StatusRow("Impact force", "%.1f g".format(sensing.accelG), null, Icons.Rounded.Speed)
+            StatusRow("Rotation", "%.1f rad/s".format(sensing.rotationRadS), null, Icons.Rounded.ScreenRotation)
         }
 
         val last = history.firstOrNull()

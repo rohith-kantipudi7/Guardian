@@ -3,9 +3,14 @@ package com.guardian.app
 import android.app.Application
 import com.guardian.app.data.GuardianRepository
 import com.guardian.app.data.SwitchableDeviceClient
+import com.guardian.app.data.ai.EdgeReasoner
+import com.guardian.app.data.ai.LlmModelManager
+import com.guardian.app.data.ai.OnDeviceAi
 import com.guardian.app.data.ble.BleGuardianDeviceClient
+import com.guardian.app.data.capture.ConversationCapture
 import com.guardian.app.data.local.GuardianDatabase
 import com.guardian.app.data.mock.MockGuardianDeviceClient
+import com.guardian.app.data.sensing.PhoneSensing
 import com.guardian.app.data.settings.DeviceSource
 import com.guardian.app.data.settings.SettingsStore
 import com.guardian.app.data.virtual.VirtualDeviceClient
@@ -30,6 +35,12 @@ class AppContainer(app: Application) {
     private val db = GuardianDatabase.create(app)
     val repository = GuardianRepository(device, db.crashEvents(), settings, scope)
     val notifier = AlertNotifier(app)
+    // Mobile is primary: the phone's own IMU runs crash detection.
+    val phoneSensing = PhoneSensing(app).also { it.start() }
+    // On-device AI understands the crash; model manager handles the downloadable LLM.
+    val onDeviceAi: OnDeviceAi = EdgeReasoner()
+    val modelManager = LlmModelManager(app)
+    val conversationCapture = ConversationCapture(app)
 }
 
 class GuardianApp : Application() {

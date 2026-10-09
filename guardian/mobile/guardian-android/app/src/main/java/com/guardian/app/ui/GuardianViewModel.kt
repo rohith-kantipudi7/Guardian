@@ -5,6 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.guardian.app.data.GuardianRepository
 import com.guardian.app.data.LiveCrash
 import com.guardian.app.data.SwitchableDeviceClient
+import com.guardian.app.data.ai.AiAssessment
+import com.guardian.app.data.ai.CrashContext
+import com.guardian.app.data.ai.OnDeviceAi
+import com.guardian.app.data.capture.BlackBoxBundle
+import com.guardian.app.data.capture.ConversationCapture
+import com.guardian.app.data.sensing.PhoneCrashResult
+import com.guardian.app.data.sensing.PhoneSensing
+import com.guardian.app.data.sensing.PhoneSensingState
 import com.guardian.app.data.settings.AppSettings
 import com.guardian.app.data.settings.DeviceSource
 import com.guardian.app.data.settings.SettingsStore
@@ -36,6 +44,8 @@ data class EmergencyAlert(
     val startedAtMs: Long,
     val responders: List<Responder> = emptyList(),
     val helpComingFrom: String? = null,
+    val aiAssessment: AiAssessment? = null,
+    val blackBox: BlackBoxBundle? = null,
 )
 
 class GuardianViewModel(
@@ -43,12 +53,16 @@ class GuardianViewModel(
     private val device: SwitchableDeviceClient,
     private val settingsStore: SettingsStore,
     private val notifier: AlertNotifier?,
+    private val sensing: PhoneSensing,
+    private val onDeviceAi: OnDeviceAi,
+    private val conversationCapture: ConversationCapture,
 ) : ViewModel() {
 
     val link: StateFlow<LinkState> = device.linkState
     val status: StateFlow<DeviceStatus?> = device.status
     val crash: StateFlow<CrashStatus?> = device.crashStatus
     val settings: StateFlow<AppSettings> = settingsStore.settings
+    val phoneSensing: StateFlow<PhoneSensingState> = sensing.state
     val history: StateFlow<List<CrashEventRecord>> =
         repo.history.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -62,6 +76,7 @@ class GuardianViewModel(
         viewModelScope.launch { device.crashStatus.collect { it?.let(::onCrashStatus) } }
         viewModelScope.launch { device.events.collect(::onDeviceEvent) }
         viewModelScope.launch { repo.liveCrashes.collect(::onLiveCrash) }
+        viewModelScope.launch { sensing.crashes.collect(::onPhoneCrash) }
         if (device.source != DeviceSource.BLE) device.connect()
     }
 
@@ -127,6 +142,40 @@ class GuardianViewModel(
             _alert.value = a.copy(eventId = e.eventId, delivered = e.delivered, latitude = e.latitude, longitude = e.longitude)
         }
     }
+
+    /** The phone's own sensors detected a crash. Mobile is primary. */
+    private fun onPhoneCrash(r: PhoneCrashResult) {
+        _alert.value = EmergencyAlert(
+            state = CrashState.EMERGENCY_ACTIVE,
+            severity = r.severity,
+            confidence = r.confidence,
+            verifyRemainingMs = null,
+            startedAtMs = System.currentTimeMillis(),
+        )
+        if (settings.value.notifications) {
+            notifier?.crash("CRASH DETECTED", "${r.severity} impact detected on your phone")
+        }
+        // Mobile is primary: run the on-device AI, then capture the in-cabin conversation for the black box.
+        viewModelScope.launch {
+            val assessment = onDeviceAi.assess(
+                CrashContext(r.severity, r.confidence, r.accelPeakG, r.rotationPeakRadS),
+            )
+            _alert.value = _alert.value?.copy(aiAssessment = assessment)
+            val clip = conversationCapture.capture()
+            _alert.value = _alert.value?.copy(
+                blackBox = BlackBoxBundle(
+                    capturedAtMs = System.currentTimeMillis(),
+                    audioPath = clip?.path,
+                    audioDurationSec = clip?.durationSec ?: 0,
+                    sensorLog = "peak ${"%.1f".format(r.accelPeakG)} g · rot ${"%.1f".format(r.rotationPeakRadS)} rad/s",
+                    transcript = null,
+                    assessment = assessment,
+                ),
+            )
+        }
+    }
+
+    fun simulatePhoneCrash() = sensing.simulateCrash()
 
     fun imSafe() = viewModelScope.launch {
         val result = repo.cancelEmergency(_alert.value?.eventId)

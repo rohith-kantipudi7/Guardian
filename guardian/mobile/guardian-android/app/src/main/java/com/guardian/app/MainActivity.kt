@@ -1,6 +1,7 @@
 package com.guardian.app
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -21,12 +22,15 @@ class MainActivity : ComponentActivity() {
 
     private val vm: GuardianViewModel by viewModels {
         viewModelFactory {
-            initializer { GuardianViewModel(container.repository, container.device, container.settings, container.notifier) }
+            initializer { GuardianViewModel(container.repository, container.device, container.settings, container.notifier, container.phoneSensing, container.onDeviceAi, container.conversationCapture) }
         }
     }
 
     private val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { vm.connect() }
+
+    private val audioPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
 
     private fun pair() {
         val needsBle = container.settings.settings.value.deviceSource == DeviceSource.BLE && !BlePermissions.granted(this)
@@ -41,6 +45,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
         setContent {
             GuardianTheme {
                 GuardianNavHost(vm, onPair = ::pair)
