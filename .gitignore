@@ -24,6 +24,9 @@ dist/
 # Android
 **/.gradle/
 **/build/
+**/.kotlin/
+**/.cxx/
+**/captures/
 **/local.properties
 **/.idea/
 *.iml
@@ -31,6 +34,7 @@ dist/
 *.aab
 *.keystore
 *.jks
+*.hprof
 
 # PlatformIO
 **/.pio/
