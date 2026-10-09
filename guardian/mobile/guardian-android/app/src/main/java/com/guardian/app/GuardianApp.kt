@@ -11,6 +11,7 @@ import com.guardian.app.data.ai.LlmModelManager
 import com.guardian.app.data.ai.OnDeviceAi
 import com.guardian.app.data.ble.BleGuardianDeviceClient
 import com.guardian.app.data.capture.ConversationCapture
+import com.guardian.app.data.capture.ContinuousBlackBox
 import com.guardian.app.data.capture.DualCameraCapture
 import com.guardian.app.data.cloud.CloudDeviceClient
 import com.guardian.app.data.local.GuardianDatabase
@@ -59,6 +60,8 @@ class AppContainer(app: Application) {
     val modelManager = LlmModelManager(app)
     val conversationCapture = ConversationCapture(app).also { it.startPreBuffer(scope) }
     val dualCameraCapture = DualCameraCapture(app)
+    // Always-on vehicle black box: buffers recent cabin/road frames so a crash has images instantly.
+    val continuousBlackBox = ContinuousBlackBox(app, dualCameraCapture).also { it.start(scope) }
 }
 
 class GuardianApp : Application() {

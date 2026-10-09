@@ -163,42 +163,6 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
             }
         }
 
-        if (settings.demoMode) {
-            SectionCard("Black-box capture · demo") {
-                Text(
-                    "Opens both cameras + the mic now and records voice before and after — the real crash pipeline, no impact needed.",
-                    color = Muted,
-                    fontSize = 13.sp,
-                )
-                Button(
-                    onClick = { vm.runCaptureDemo() },
-                    enabled = !capturing,
-                    modifier = Modifier.fillMaxWidth().height(52.dp),
-                ) {
-                    if (capturing) {
-                        CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
-                        Spacer(Modifier.width(10.dp))
-                        Text("Capturing…", fontWeight = FontWeight.Bold)
-                    } else {
-                        Icon(Icons.Rounded.PhotoCamera, null, modifier = Modifier.size(20.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("Run capture test", fontWeight = FontWeight.Bold)
-                    }
-                }
-                demoCapture?.let { bb ->
-                    CaptureEvidence(
-                        cabinPath = bb.cabinImagePath,
-                        roadPath = bb.roadImagePath,
-                        audioPath = bb.audioPath,
-                        audioDurationSec = bb.audioDurationSec,
-                        preAudioPath = bb.preAudioPath,
-                        preAudioDurationSec = bb.preAudioDurationSec,
-                    )
-                    TextButton(onClick = { vm.clearDemoCapture() }) { Text("Clear") }
-                }
-            }
-        }
-
         SectionCard("Emergency path") {
             ConnectionChain(
                 nodes = listOf(
@@ -255,6 +219,42 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
                         )
                         Text("${lastAnomaly.detail} · ${formatTimestampMs(lastAnomaly.timestampMs)}", color = Muted, fontSize = 13.sp)
                     }
+                }
+            }
+        }
+
+        if (settings.demoMode) {
+            SectionCard("Black-box capture · demo (temporary)") {
+                Text(
+                    "Opens both cameras + the mic now and records voice before and after — the real crash pipeline, no impact needed.",
+                    color = Muted,
+                    fontSize = 13.sp,
+                )
+                Button(
+                    onClick = { vm.runCaptureDemo() },
+                    enabled = !capturing,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                ) {
+                    if (capturing) {
+                        CircularProgressIndicator(Modifier.size(18.dp), color = Color.White, strokeWidth = 2.dp)
+                        Spacer(Modifier.width(10.dp))
+                        Text("Capturing…", fontWeight = FontWeight.Bold)
+                    } else {
+                        Icon(Icons.Rounded.PhotoCamera, null, modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text("Run capture test", fontWeight = FontWeight.Bold)
+                    }
+                }
+                demoCapture?.let { bb ->
+                    CaptureEvidence(
+                        cabinPath = bb.cabinImagePath,
+                        roadPath = bb.roadImagePath,
+                        audioPath = bb.audioPath,
+                        audioDurationSec = bb.audioDurationSec,
+                        preAudioPath = bb.preAudioPath,
+                        preAudioDurationSec = bb.preAudioDurationSec,
+                    )
+                    TextButton(onClick = { vm.clearDemoCapture() }) { Text("Clear") }
                 }
             }
         }

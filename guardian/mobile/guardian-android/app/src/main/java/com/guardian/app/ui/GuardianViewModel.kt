@@ -9,6 +9,7 @@ import com.guardian.app.data.ai.AiAssessment
 import com.guardian.app.data.ai.CrashContext
 import com.guardian.app.data.ai.OnDeviceAi
 import com.guardian.app.data.capture.BlackBoxBundle
+import com.guardian.app.data.capture.ContinuousBlackBox
 import com.guardian.app.data.capture.ConversationCapture
 import com.guardian.app.data.capture.DualCameraCapture
 import com.guardian.app.data.capture.toTransferJson
@@ -61,6 +62,7 @@ class GuardianViewModel(
     private val onDeviceAi: OnDeviceAi,
     private val conversationCapture: ConversationCapture,
     private val dualCameraCapture: DualCameraCapture,
+    private val continuousBlackBox: ContinuousBlackBox,
     private val alarmSiren: AlarmSiren?,
 ) : ViewModel() {
 
@@ -233,7 +235,10 @@ class GuardianViewModel(
         }
         // Mobile is primary: capture the scene first, then let the AI reason over what we actually have.
         viewModelScope.launch {
-            val photos = dualCameraCapture.capture()
+            // Use the frames the black box already buffered (every ~10s) so a crash has images
+            // instantly; only fall back to a live capture if the buffer is still warming up.
+            var photos = continuousBlackBox.latest()
+            if (photos.cabinPath == null && photos.roadPath == null) photos = dualCameraCapture.capture()
             val imageCount = listOfNotNull(photos.cabinPath, photos.roadPath).size
             // Show the captured photos immediately, before the (longer) audio clip finishes recording.
             val photoOnly = BlackBoxBundle(

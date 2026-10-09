@@ -37,6 +37,7 @@ class ConversationCapture(private val context: Context) {
 
     private val micMutex = Mutex()
     private var preJob: Job? = null
+    private val audioDir = File(context.cacheDir, "blackbox_audio")
 
     @Volatile private var activeRecorder: MediaRecorder? = null
     @Volatile private var activeFile: File? = null
@@ -66,13 +67,14 @@ class ConversationCapture(private val context: Context) {
     /** Continuously records short segments so the crash black box includes audio from BEFORE impact. */
     fun startPreBuffer(scope: CoroutineScope) {
         if (preJob?.isActive == true) return
+        audioDir.mkdirs()
         preJob = scope.launch(Dispatchers.IO) {
             while (isActive) {
                 if (!micGranted()) {
                     delay(3000)
                     continue
                 }
-                val file = File(context.cacheDir, "prebuf_${System.currentTimeMillis()}.m4a")
+                val file = File(audioDir, "seg_${System.currentTimeMillis()}.m4a")
                 val started = micMutex.withLock {
                     runCatching {
                         val r = newRecorder()
@@ -96,12 +98,22 @@ class ConversationCapture(private val context: Context) {
                         if (r != null) {
                             runCatching { r.stop() }
                             runCatching { r.release() }
-                            lastSegment?.takeIf { it != file }?.let { old -> runCatching { old.delete() } }
                             lastSegment = activeFile
                             activeRecorder = null
+                            pruneAudio() // keep a rolling ~10-minute window of segments
                         }
                     }
                 }
+            }
+        }
+    }
+
+    /** Drops stored audio segments older than the rolling window. */
+    private fun pruneAudio() {
+        val cutoff = System.currentTimeMillis() - WINDOW_MS
+        runCatching {
+            audioDir.listFiles()?.forEach { f ->
+                if (f != activeFile && f != lastSegment && f.lastModified() < cutoff) f.delete()
             }
         }
     }
@@ -168,5 +180,6 @@ class ConversationCapture(private val context: Context) {
     private companion object {
         const val PRE_SECONDS = 12
         const val POST_SECONDS = 10
+        const val WINDOW_MS = 10 * 60 * 1000L // rolling 10-minute audio black box
     }
 }
