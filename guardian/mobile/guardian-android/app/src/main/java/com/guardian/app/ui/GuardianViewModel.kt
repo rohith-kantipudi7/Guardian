@@ -145,6 +145,19 @@ class GuardianViewModel(
         _demoCapture.value = null
     }
 
+    /** Manually push a black box to the connected device over Wi-Fi, to test the transfer path. */
+    fun sendBlackBoxToDevice() = viewModelScope.launch {
+        val bb = _demoCapture.value
+        val json = bb?.toTransferJson(null, "TEST", 0.9)
+            ?: """{"eventId":"TEST","severity":"TEST","confidence":0.9,"sensorLog":"manual test",""" +
+            """"audioSec":0,"preAudioSec":0,"images":0,"assessment":"Guardian app test black box"}"""
+        _message.value = if (device.sendBlackBox(json)) {
+            "Black box sent to device ✓"
+        } else {
+            "Device didn't accept it — pick the Wi-Fi device + check the IP"
+        }
+    }
+
     /** Backend view of this vehicle's crashes: who was alerted and how far help has got. */
     private fun onLiveCrash(c: LiveCrash) {
         val e = c.event

@@ -32,6 +32,7 @@ import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.Router
 import androidx.compose.material.icons.rounded.Satellite
 import androidx.compose.material.icons.rounded.ScreenRotation
+import androidx.compose.material.icons.rounded.Send
 import androidx.compose.material.icons.rounded.Sensors
 import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.Smartphone
@@ -41,6 +42,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -255,6 +257,11 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
                         preAudioDurationSec = bb.preAudioDurationSec,
                     )
                     TextButton(onClick = { vm.clearDemoCapture() }) { Text("Clear") }
+                }
+                OutlinedButton(onClick = { vm.sendBlackBoxToDevice() }, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Rounded.Send, null, modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Send black box → device")
                 }
             }
         }
