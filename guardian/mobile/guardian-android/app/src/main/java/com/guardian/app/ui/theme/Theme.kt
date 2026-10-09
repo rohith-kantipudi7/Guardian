@@ -18,7 +18,7 @@ val Ok = Color(0xFF22C55E)
 val Bad = Color(0xFFF43F5E)
 val Warn = Color(0xFFF59E0B)
 val Critical = Color(0xFFF43F5E)
-val Info = Color(0xFF38BDF8)
+val Info = Color(0xFF10B981)
 val Violet = Color(0xFFA78BFA)
 val Muted = Color(0xFF94A3B8)
 
@@ -28,16 +28,16 @@ val Surface2 = Color(0xFF151D2C)
 val Line = Color(0xFF233044)
 
 // Brand gradient stops (cyan -> blue -> indigo) for hero surfaces and the brand mark.
-val BrandCyan = Color(0xFF38BDF8)
-val BrandBlue = Color(0xFF0EA5E9)
-val BrandIndigo = Color(0xFF818CF8)
+val BrandCyan = Color(0xFF10B981)
+val BrandBlue = Color(0xFF059669)
+val BrandIndigo = Color(0xFF34D399)
 
 val BrandBrush = Brush.linearGradient(listOf(BrandCyan, BrandIndigo))
 val DangerBrush = Brush.linearGradient(listOf(Color(0xFFF43F5E), Color(0xFFE11D48)))
 
 private val Scheme = darkColorScheme(
     primary = Info,
-    onPrimary = Color(0xFF001321),
+    onPrimary = Color(0xFF06251A),
     secondary = Violet,
     error = Critical,
     onError = Color(0xFF1A0308),
