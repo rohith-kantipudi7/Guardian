@@ -16,6 +16,7 @@ object GuardianBleUuids {
     val CRASH_STATUS: UUID = uuid(6)
     val EVENT: UUID = uuid(7)
     val COMMAND: UUID = uuid(8)
+    val BLACKBOX: UUID = uuid(9)
 
     val NOTIFY_CHARACTERISTICS = listOf(DEVICE_STATUS, BATTERY, GPS_STATUS, CELLULAR_STATUS, VEHICLE_STATUS, CRASH_STATUS, EVENT)
 

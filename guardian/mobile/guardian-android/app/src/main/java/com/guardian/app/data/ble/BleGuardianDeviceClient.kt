@@ -106,15 +106,29 @@ class BleGuardianDeviceClient(
         val g = gatt ?: return false
         if (_link.value != LinkState.CONNECTED) return false
         val c = g.getService(GuardianBleUuids.SERVICE)?.getCharacteristic(GuardianBleUuids.COMMAND) ?: return false
-        val bytes = BlePayloadParser.encodeCommand(command)
-        return gattOp {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                g.writeCharacteristic(c, bytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) == BluetoothStatusCodes.SUCCESS
-            } else {
-                legacyWrite(g, c, bytes)
-            }
-        }
+        return gattOp { writeChar(g, c, BlePayloadParser.encodeCommand(command)) }
     }
+
+    override suspend fun sendBlackBox(json: String): Boolean {
+        val g = gatt ?: return false
+        if (_link.value != LinkState.CONNECTED) return false
+        val c = g.getService(GuardianBleUuids.SERVICE)?.getCharacteristic(GuardianBleUuids.BLACKBOX) ?: return false
+        val data = (json + "\u0004").toByteArray()  // EOT marks the end of the bundle
+        var i = 0
+        while (i < data.size) {
+            val end = minOf(i + BLACKBOX_CHUNK, data.size)
+            if (!gattOp { writeChar(g, c, data.copyOfRange(i, end)) }) return false
+            i = end
+        }
+        return true
+    }
+
+    private fun writeChar(g: BluetoothGatt, c: BluetoothGattCharacteristic, bytes: ByteArray): Boolean =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            g.writeCharacteristic(c, bytes, BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT) == BluetoothStatusCodes.SUCCESS
+        } else {
+            legacyWrite(g, c, bytes)
+        }
 
     @Suppress("DEPRECATION")
     private fun legacyWrite(g: BluetoothGatt, c: BluetoothGattCharacteristic, bytes: ByteArray): Boolean {
@@ -302,5 +316,6 @@ class BleGuardianDeviceClient(
     private companion object {
         const val TAG = "GuardianBle"
         const val SCAN_TIMEOUT_MS = 15_000L
+        const val BLACKBOX_CHUNK = 180
     }
 }

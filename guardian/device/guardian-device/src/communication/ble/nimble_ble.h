@@ -6,6 +6,8 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 
+#include <string>
+
 #include "interfaces.h"
 
 namespace guardian {
@@ -41,6 +43,10 @@ private:
     NimBLECharacteristic* crash_ = nullptr;
     NimBLECharacteristic* event_ = nullptr;
     NimBLECharacteristic* command_ = nullptr;
+    // Black box streamed from the phone (chunked, 0x04-terminated).
+    NimBLECharacteristic* blackbox_ = nullptr;
+    std::string blackboxBuf_;
+    String blackbox_json_;
 };
 
 }  // namespace guardian

@@ -63,6 +63,8 @@ void NimbleBle::start() {
     event_ = make(svc, ble::EVENT_UUID, READ | NOTIFY);
     command_ = make(svc, ble::COMMAND_UUID, WRITE);
     command_->setCallbacks(this);
+    blackbox_ = make(svc, ble::BLACKBOX_UUID, WRITE);
+    blackbox_->setCallbacks(this);
     svc->start();
 
     NimBLEAdvertising* adv = NimBLEDevice::getAdvertising();
@@ -84,6 +86,21 @@ void NimbleBle::onDisconnect(NimBLEServer*) {
 }
 
 void NimbleBle::onWrite(NimBLECharacteristic* c) {
+    if (c == blackbox_) {
+        // Phone streams the post-accident black box in chunks; 0x04 (EOT) ends the bundle.
+        std::string v = c->getValue();
+        for (char ch : v) {
+            if (ch == '\x04') {
+                blackbox_json_ = String(blackboxBuf_.c_str());
+                Serial.printf("[ble] black box received (%u bytes): %s\n",
+                              static_cast<unsigned>(blackboxBuf_.size()), blackboxBuf_.c_str());
+                blackboxBuf_.clear();
+            } else {
+                blackboxBuf_.push_back(ch);
+            }
+        }
+        return;
+    }
     std::string v = c->getValue();
     JsonDocument doc;
     if (deserializeJson(doc, v) != DeserializationError::Ok) return;

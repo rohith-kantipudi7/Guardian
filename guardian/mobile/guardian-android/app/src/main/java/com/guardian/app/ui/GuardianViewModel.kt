@@ -10,6 +10,7 @@ import com.guardian.app.data.ai.CrashContext
 import com.guardian.app.data.ai.OnDeviceAi
 import com.guardian.app.data.capture.BlackBoxBundle
 import com.guardian.app.data.capture.ConversationCapture
+import com.guardian.app.data.capture.toTransferJson
 import com.guardian.app.data.sensing.PhoneCrashResult
 import com.guardian.app.data.sensing.PhoneSensing
 import com.guardian.app.data.sensing.PhoneSensingState
@@ -162,16 +163,20 @@ class GuardianViewModel(
             )
             _alert.value = _alert.value?.copy(aiAssessment = assessment)
             val clip = conversationCapture.capture()
-            _alert.value = _alert.value?.copy(
-                blackBox = BlackBoxBundle(
-                    capturedAtMs = System.currentTimeMillis(),
-                    audioPath = clip?.path,
-                    audioDurationSec = clip?.durationSec ?: 0,
-                    sensorLog = "peak ${"%.1f".format(r.accelPeakG)} g · rot ${"%.1f".format(r.rotationPeakRadS)} rad/s",
-                    transcript = null,
-                    assessment = assessment,
-                ),
+            val bundle = BlackBoxBundle(
+                capturedAtMs = System.currentTimeMillis(),
+                audioPath = clip?.path,
+                audioDurationSec = clip?.durationSec ?: 0,
+                sensorLog = "peak ${"%.1f".format(r.accelPeakG)} g · rot ${"%.1f".format(r.rotationPeakRadS)} rad/s",
+                transcript = null,
+                assessment = assessment,
             )
+            _alert.value = _alert.value?.copy(blackBox = bundle)
+            // Hand the black box to the vehicle device over BLE so it survives phone loss.
+            val json = bundle.toTransferJson(_alert.value?.eventId, r.severity.name, r.confidence)
+            if (device.sendBlackBox(json)) {
+                _alert.value = _alert.value?.copy(blackBox = bundle.copy(syncedToDevice = true))
+            }
         }
     }
 

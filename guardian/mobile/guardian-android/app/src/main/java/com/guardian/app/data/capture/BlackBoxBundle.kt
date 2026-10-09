@@ -10,4 +10,13 @@ data class BlackBoxBundle(
     val sensorLog: String,
     val transcript: String?,
     val assessment: AiAssessment?,
+    val syncedToDevice: Boolean = false,
 )
+
+/** Compact JSON the phone streams to the vehicle device's black box over BLE. */
+fun BlackBoxBundle.toTransferJson(eventId: String?, severity: String, confidence: Double): String {
+    val a = assessment
+    val text = if (a != null) "${a.whatHappened} ${a.occupantState} ${a.recommendation}" else ""
+    return """{"eventId":"${eventId ?: ""}","severity":"$severity","confidence":$confidence,""" +
+        """"sensorLog":"$sensorLog","audioSec":$audioDurationSec,"assessment":"$text"}"""
+}

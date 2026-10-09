@@ -23,4 +23,7 @@ interface GuardianDeviceClient {
     /** [userInitiated] = true suppresses auto-reconnect (demo: "force phone disconnected"). */
     fun disconnect(userInitiated: Boolean = true)
     suspend fun send(command: DeviceCommand): Boolean
+
+    /** Stream the post-accident black box to the device (BLE only; other sources no-op). */
+    suspend fun sendBlackBox(json: String): Boolean = false
 }

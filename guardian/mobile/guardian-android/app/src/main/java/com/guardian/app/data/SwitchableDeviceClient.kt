@@ -51,4 +51,5 @@ class SwitchableDeviceClient(
     override fun connect() = selected.value.connect()
     override fun disconnect(userInitiated: Boolean) = selected.value.disconnect(userInitiated)
     override suspend fun send(command: DeviceCommand): Boolean = selected.value.send(command)
+    override suspend fun sendBlackBox(json: String): Boolean = selected.value.sendBlackBox(json)
 }

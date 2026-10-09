@@ -18,6 +18,7 @@ Defined in `device/guardian-device/include/ble_uuids.h` and Android `GuardianBle
 | CRASH_STATUS | `47550006-…` | read, notify | `{"state":"VERIFYING","severity":"MODERATE","confidence":0.63,"reasons":"impact,rapid_rotation","verifyRemainingMs":9000}` |
 | EVENT | `47550007-…` | read, notify | `{"eventId","timestamp","severity","confidence","lat","lon","phoneConnected","delivered"}` |
 | COMMAND | `47550008-…` | write | `{"cmd":"…","arg":"…"}` |
+| BLACKBOX | `47550009-…` | write | Phone-primary post-accident bundle: chunked UTF-8 JSON, `0x04` (EOT) terminates |
 
 Status characteristics are notified every 1 s; CRASH_STATUS on every state transition;
 EVENT when an event is created (`delivered:false`) and again when the backend ACKs it

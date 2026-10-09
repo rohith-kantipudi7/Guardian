@@ -15,5 +15,6 @@ constexpr const char* VEHICLE_STATUS_UUID = "47550005-4152-4449-414e-00000000000
 constexpr const char* CRASH_STATUS_UUID = "47550006-4152-4449-414e-000000000000";
 constexpr const char* EVENT_UUID = "47550007-4152-4449-414e-000000000000";
 constexpr const char* COMMAND_UUID = "47550008-4152-4449-414e-000000000000";
+constexpr const char* BLACKBOX_UUID = "47550009-4152-4449-414e-000000000000";
 
 }  // namespace guardian::ble

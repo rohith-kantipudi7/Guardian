@@ -135,15 +135,20 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
         }
 
         alert.blackBox?.let { bb ->
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Rounded.GraphicEq, null, tint = Color(0xFF93C5FD), modifier = Modifier.size(18.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    if (bb.audioPath != null) "In-cabin audio captured (${bb.audioDurationSec}s) · stored for black box"
-                    else "Black box: sensor log stored",
-                    color = Color(0xFFFECACA),
-                    fontSize = 13.sp,
-                )
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Rounded.GraphicEq, null, tint = Color(0xFF93C5FD), modifier = Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        if (bb.audioPath != null) "In-cabin audio captured (${bb.audioDurationSec}s)"
+                        else "Black box: sensor log stored",
+                        color = Color(0xFFFECACA),
+                        fontSize = 13.sp,
+                    )
+                }
+                if (bb.syncedToDevice) {
+                    Text("Black box synced to vehicle device", color = Color(0xFF86EFAC), fontSize = 12.sp)
+                }
             }
         }
 
