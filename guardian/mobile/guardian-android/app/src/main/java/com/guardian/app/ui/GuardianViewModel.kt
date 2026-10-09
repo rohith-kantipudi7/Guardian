@@ -10,6 +10,7 @@ import com.guardian.app.data.ai.CrashContext
 import com.guardian.app.data.ai.OnDeviceAi
 import com.guardian.app.data.capture.BlackBoxBundle
 import com.guardian.app.data.capture.ConversationCapture
+import com.guardian.app.data.capture.DualCameraCapture
 import com.guardian.app.data.capture.toTransferJson
 import com.guardian.app.data.sensing.PhoneCrashResult
 import com.guardian.app.data.sensing.PhoneSensing
@@ -57,6 +58,7 @@ class GuardianViewModel(
     private val sensing: PhoneSensing,
     private val onDeviceAi: OnDeviceAi,
     private val conversationCapture: ConversationCapture,
+    private val dualCameraCapture: DualCameraCapture,
 ) : ViewModel() {
 
     val link: StateFlow<LinkState> = device.linkState
@@ -162,11 +164,14 @@ class GuardianViewModel(
                 CrashContext(r.severity, r.confidence, r.accelPeakG, r.rotationPeakRadS),
             )
             _alert.value = _alert.value?.copy(aiAssessment = assessment)
+            val photos = dualCameraCapture.capture()
             val clip = conversationCapture.capture()
             val bundle = BlackBoxBundle(
                 capturedAtMs = System.currentTimeMillis(),
                 audioPath = clip?.path,
                 audioDurationSec = clip?.durationSec ?: 0,
+                cabinImagePath = photos.cabinPath,
+                roadImagePath = photos.roadPath,
                 sensorLog = "peak ${"%.1f".format(r.accelPeakG)} g · rot ${"%.1f".format(r.rotationPeakRadS)} rad/s",
                 transcript = null,
                 assessment = assessment,

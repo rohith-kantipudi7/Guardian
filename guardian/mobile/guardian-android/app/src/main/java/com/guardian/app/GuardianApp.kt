@@ -8,6 +8,7 @@ import com.guardian.app.data.ai.LlmModelManager
 import com.guardian.app.data.ai.OnDeviceAi
 import com.guardian.app.data.ble.BleGuardianDeviceClient
 import com.guardian.app.data.capture.ConversationCapture
+import com.guardian.app.data.capture.DualCameraCapture
 import com.guardian.app.data.cloud.CloudDeviceClient
 import com.guardian.app.data.local.GuardianDatabase
 import com.guardian.app.data.mock.MockGuardianDeviceClient
@@ -47,6 +48,7 @@ class AppContainer(app: Application) {
     val onDeviceAi: OnDeviceAi = EdgeReasoner()
     val modelManager = LlmModelManager(app)
     val conversationCapture = ConversationCapture(app)
+    val dualCameraCapture = DualCameraCapture(app)
 }
 
 class GuardianApp : Application() {

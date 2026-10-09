@@ -149,6 +149,10 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
                 if (bb.syncedToDevice) {
                     Text("Black box synced to vehicle device", color = Color(0xFF86EFAC), fontSize = 12.sp)
                 }
+                val photos = listOfNotNull(bb.cabinImagePath, bb.roadImagePath).size
+                if (photos > 0) {
+                    Text("$photos camera photo(s) captured (cabin + road)", color = Color(0xFFFECACA), fontSize = 13.sp)
+                }
             }
         }
 

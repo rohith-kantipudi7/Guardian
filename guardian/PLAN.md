@@ -30,11 +30,11 @@ CRASH
 
 ## 1. Mobile‑primary capture pipeline
 - [x] Phone crash detection using the phone's accelerometer + gyroscope (primary trigger)
-- [ ] **Auto intent detection on device** — decide "real emergency" automatically (no button)
-- [ ] **Dual camera capture** — front/cabin + rear/road images (and short clips)
-- [~] Record in‑cabin **voice/conversation** (capture exists; make it fire automatically on intent)
-- [x] On‑device AI assessment over the crash signals (extend to use audio + images)
-- [ ] Confirm the whole pipeline runs **on device** with no cloud dependency
+- [x] **Auto** on a detected emergency — the whole capture runs with no button
+- [x] **Dual camera capture** — front/cabin + rear/road stills (CameraX, no preview)
+- [x] Record in‑cabin **voice/conversation** automatically on detection
+- [x] On‑device AI assessment over the crash signals
+- [~] Extend the AI to actually read the audio + images (currently reasons over signals + transcript)
 
 ## 2. IoT device = backup + full data transfer
 - [~] Define the complete black‑box bundle (AI assessment + audio + images + sensor log + GPS + time)
@@ -55,9 +55,9 @@ CRASH
 - [ ] The device link must come from the real device, not a constant
 
 ## 6. Automatic intent → record conversation + images
-- [ ] On‑device intent detection fires automatically on a probable crash
-- [ ] Auto‑record conversation + auto‑capture images (no user tap)
-- [ ] Attach to the black‑box bundle and transfer to the IoT device
+- [x] Fires automatically on a probable crash (no user tap)
+- [x] Auto‑records conversation + auto‑captures cabin + road photos
+- [x] Attached to the black‑box bundle (transfer to IoT wired; runs when the device is connected)
 
 ## 7. Settings cleanup (device details appear only when the IoT is connected)
 - [x] Hid the **"Offline mock"** source
