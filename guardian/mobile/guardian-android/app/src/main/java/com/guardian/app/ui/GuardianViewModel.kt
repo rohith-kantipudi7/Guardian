@@ -86,6 +86,10 @@ class GuardianViewModel(
     private val _capturing = MutableStateFlow(false)
     val capturing: StateFlow<Boolean> = _capturing.asStateFlow()
 
+    /** True when the phone's live signals are reaching the Wi-Fi device (last push succeeded). */
+    private val _deviceStreaming = MutableStateFlow(false)
+    val deviceStreaming: StateFlow<Boolean> = _deviceStreaming.asStateFlow()
+
     private val _alert = MutableStateFlow<EmergencyAlert?>(null)
     val alert: StateFlow<EmergencyAlert?> = _alert.asStateFlow()
 
@@ -107,7 +111,7 @@ class GuardianViewModel(
                 val json = """{"accelG":${"%.2f".format(st.accelG)},""" +
                     """"rotationRadS":${"%.2f".format(st.rotationRadS)},""" +
                     """"detection":${st.active},"state":"${if (emergency) "EMERGENCY" else "NORMAL"}"}"""
-                runCatching { device.pushPhoneSignals(json) }
+                _deviceStreaming.value = runCatching { device.pushPhoneSignals(json) }.getOrDefault(false)
                 delay(1000)
             }
         }

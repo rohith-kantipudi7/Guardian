@@ -1,5 +1,6 @@
 package com.guardian.app.data.esp32
 
+import android.util.Log
 import com.guardian.app.domain.CrashEventRecord
 import com.guardian.app.domain.CrashState
 import com.guardian.app.domain.CrashStatus
@@ -94,6 +95,7 @@ class Esp32DeviceClient(
                 val count = json.optInt("count", 0)
                 val accel = json.optDouble("accel", 1.0)
                 val gyro = json.optDouble("gyro", 0.0)
+                Log.i("Esp32", "GET ${base()}/data -> 200 count=$count accel=$accel")
                 _link.value = LinkState.CONNECTED
                 _status.value = DeviceStatus(
                     deviceId = deviceId(),
@@ -112,6 +114,7 @@ class Esp32DeviceClient(
                 lastCount = count
             }
         } catch (e: Exception) {
+            Log.w("Esp32", "GET ${base()}/data FAILED: ${e.message}")
             markOffline()
         }
     }
@@ -162,13 +165,18 @@ class Esp32DeviceClient(
     override suspend fun pushPhoneSignals(json: String): Boolean = post("/phone", json)
 
     private suspend fun post(path: String, json: String): Boolean = withContext(Dispatchers.IO) {
+        val url = "${base()}$path"
         try {
             val req = Request.Builder()
-                .url("${base()}$path")
+                .url(url)
                 .post(json.toRequestBody("application/json".toMediaType()))
                 .build()
-            http.newCall(req).execute().use { it.isSuccessful }
+            http.newCall(req).execute().use {
+                Log.i("Esp32", "POST $url -> ${it.code}")
+                it.isSuccessful
+            }
         } catch (e: Exception) {
+            Log.w("Esp32", "POST $url FAILED: ${e.message}")
             false
         }
     }

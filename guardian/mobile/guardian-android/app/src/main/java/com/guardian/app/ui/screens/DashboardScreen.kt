@@ -84,6 +84,7 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
     val sensing by vm.phoneSensing.collectAsStateWithLifecycle()
     val demoCapture by vm.demoCapture.collectAsStateWithLifecycle()
     val capturing by vm.capturing.collectAsStateWithLifecycle()
+    val deviceStreaming by vm.deviceStreaming.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val camerasArmed = ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) ==
         android.content.pm.PackageManager.PERMISSION_GRANTED
@@ -189,6 +190,7 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
                 Text("No Guardian IoT device connected. The phone protects you on its own; pair the device as a backup black box.", color = Muted, fontSize = 13.sp)
             } else {
                 StatusRow("Mobile link (LTE)", s.cellular?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "—", lte, Icons.Rounded.CellTower)
+                StatusRow("Phone → device stream", if (deviceStreaming) "Live" else "Off", deviceStreaming, Icons.Rounded.Send)
                 StatusRow("GPS", s.gps?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "—", s.gps == "AVAILABLE", Icons.Rounded.Satellite)
                 StatusRow("Backup battery", s.battery?.let { "$it%" } ?: "—", s.battery?.let { it > 20 }, Icons.Rounded.BatteryStd)
                 if ((s.pendingEvents ?: 0) > 0) {
