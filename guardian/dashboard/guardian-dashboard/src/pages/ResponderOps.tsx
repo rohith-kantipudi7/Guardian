@@ -66,7 +66,7 @@ function Responder({
       </Box>
       <Chip
         size="small"
-        label={active ? 'Alerting' : 'Standby'}
+        label={active ? 'Calling / alerting' : 'Configured'}
         color={active ? 'error' : 'default'}
         variant={active ? 'filled' : 'outlined'}
         sx={{ fontWeight: 700 }}

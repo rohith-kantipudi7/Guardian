@@ -132,14 +132,32 @@ class GuardianViewModel(
         // dashboard shows the black box filling + transferring in real time.
         viewModelScope.launch {
             while (true) {
-                if (_liveTransfer.value) runCatching { sendBox { liveBlackBoxJson(it) } }
+                if (_liveTransfer.value && !crashStored) runCatching { sendBox { liveBlackBoxJson(it) } }
                 delay(3000)
+            }
+        }
+        // Continuous capture checkpoint: every 10 minutes the latest audio + photos go to the black box.
+        viewModelScope.launch {
+            delay(15_000)
+            while (true) {
+                if (!crashStored) {
+                    val seg = conversationCapture.latestSegment()
+                    mediaServer.preAudioPath = seg?.path
+                    checkpointAudioSec = seg?.durationSec ?: 0
+                    checkpointAtMs = System.currentTimeMillis()
+                    runCatching { sendBox { liveBlackBoxJson(it) } }
+                }
+                delay(10 * 60_000L)
             }
         }
         if (device.source != DeviceSource.BLE) device.connect()
     }
 
     @Volatile private var thumbsOk = true
+    @Volatile private var checkpointAtMs = 0L
+    @Volatile private var checkpointAudioSec = 0
+    // Once a crash record is on the device, live/checkpoint snapshots must not overwrite it.
+    @Volatile private var crashStored = false
 
     /** Sends with last-frame thumbnails; if only the thumbnail-free body is accepted, stops sending them. */
     private suspend fun sendBox(build: (withThumbs: Boolean) -> String): Boolean {
@@ -164,7 +182,7 @@ class GuardianViewModel(
         } else ""
         return """{"eventId":"LIVE","severity":"MONITORING","confidence":1.0,""" + thumbs +
             """"sensorLog":"live ${"%.1f".format(st.accelG)} g · ${"%.1f".format(st.rotationRadS)} rad/s",""" +
-            """"audioSec":0,"preAudioSec":0,"images":$images,"frames":$frames,"media":"${mediaServer.baseUrl() ?: ""}","location":"${loc ?: ""}","smsSent":0,""" +
+            """"audioSec":0,"preAudioSec":$checkpointAudioSec,"checkpointAt":$checkpointAtMs,"images":$images,"frames":$frames,"media":"${mediaServer.baseUrl() ?: ""}","location":"${loc ?: ""}","smsSent":0,""" +
             """"assessment":"Live black box streaming · $frames frames buffered · updated $ts · ready to transfer on impact."}"""
     }
 
@@ -409,6 +427,7 @@ class GuardianViewModel(
                 bundle.toTransferJson(eventId, r.severity.name, r.confidence, phoneLocation.lastKnown(), smsSent, frames, mediaBase, thumbs)
             }
             if (ok) {
+                crashStored = true
                 _alert.value = _alert.value?.copy(blackBox = bundle.copy(syncedToDevice = true))
             }
         }
@@ -418,6 +437,7 @@ class GuardianViewModel(
 
     fun imSafe() = viewModelScope.launch {
         alarmSiren?.stop()
+        crashStored = false
         val result = repo.cancelEmergency(_alert.value?.eventId)
         _message.value = "I'M SAFE: $result"
         _alert.value = null

@@ -127,7 +127,7 @@ export function LiveDevice() {
             <Link ok={backupAlert} />
             <Node
               label="Responders"
-              sub={backupAlert ? 'Alerting' : 'Needs internet'}
+              sub={backupAlert ? 'Alerting' : 'Configured'}
               online={backupAlert ? true : null}
               icon={<GroupsOutlined />}
             />

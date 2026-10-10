@@ -167,6 +167,10 @@ class ConversationCapture(private val context: Context) {
         }
     }
 
+    /** Newest finished rolling-buffer segment, used for the periodic checkpoint transfer. */
+    fun latestSegment(): ConversationClip? =
+        lastSegment?.takeIf { it.exists() && it.length() > 0 }?.let { ConversationClip(it.path, durationSec(it)) }
+
     private fun durationSec(file: File): Int = runCatching {
         val mmr = MediaMetadataRetriever()
         try {

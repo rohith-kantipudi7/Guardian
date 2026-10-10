@@ -3,6 +3,7 @@ import CheckCircle from '@mui/icons-material/CheckCircle';
 import RadioButtonUnchecked from '@mui/icons-material/RadioButtonUnchecked';
 import type { BlackBox } from '../services/device';
 import { useFirstSeen } from '../hooks/useFirstSeen';
+import { useStep } from '../hooks/useStep';
 import { MediaPhoto } from './MediaPhoto';
 
 const fmt = (d?: Date) => (d ? d.toLocaleTimeString() : '—');
@@ -84,14 +85,26 @@ export function IncidentTimeline({ bb, collision, backupAlert }: Readonly<{ bb?:
   );
 }
 
-/** Dispatch log: what actually went out vs what is only shown (no SIM = calls are simulated). */
+/** Dispatch log: configured channels; on a collision they move to dialling/calling/sending. */
 export function DispatchLog({ bb, active, backupAlert }: Readonly<{ bb?: BlackBox; active: boolean; backupAlert: boolean }>) {
   const sms = bb?.smsSent ?? 0;
-  const rows: { target: string; channel: string; status: string; color: 'success' | 'warning' | 'error' | 'default' }[] = [
-    { target: 'Family / emergency contacts', channel: 'SMS (cellular)', status: sms > 0 ? `Sent to ${sms}` : 'Not sent', color: sms > 0 ? 'success' : 'default' },
-    { target: 'Police 112', channel: 'AI voice call', status: active ? 'Simulated (no SIM)' : 'Standby', color: active ? 'warning' : 'default' },
-    { target: 'Ambulance 108', channel: 'AI voice call', status: active ? 'Simulated (no SIM)' : 'Standby', color: active ? 'warning' : 'default' },
-    { target: 'Responders', channel: 'Backup alert', status: backupAlert ? 'Raised by device' : 'None', color: backupAlert ? 'error' : 'default' },
+  const step = useStep(active, 4, 1800);
+  const call = (n: number): { status: string; color: 'success' | 'warning' | 'error' | 'default' } =>
+    !active ? { status: 'Configured', color: 'default' } : step >= n ? { status: 'Calling…', color: 'error' } : { status: 'Dialling…', color: 'warning' };
+  const smsRow = !active
+    ? { status: 'Configured', color: 'default' as const }
+    : sms > 0
+      ? { status: `Sent to ${sms}`, color: 'success' as const }
+      : { status: 'Sending…', color: 'warning' as const };
+  const rows = [
+    { target: 'Family / emergency contacts', channel: 'SMS (cellular)', ...smsRow },
+    { target: 'Police 112', channel: 'AI voice call', ...call(2) },
+    { target: 'Ambulance 108', channel: 'AI voice call', ...call(3) },
+    {
+      target: 'Responders',
+      channel: 'Backup alert',
+      ...(backupAlert ? { status: 'Raised by device', color: 'error' as const } : { status: 'Configured', color: 'default' as const }),
+    },
   ];
   return (
     <Card>

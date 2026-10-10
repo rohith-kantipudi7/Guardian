@@ -145,8 +145,8 @@ export function TransferVisual({ bb, live, collision }: Readonly<{ bb?: BlackBox
           CONTINUOUS CAPTURE · always recording
         </Typography>
         <Stack spacing={0.75}>
-          <ContinuousRow live={live} icon={<PhotoCameraOutlined fontSize="small" />} label="Cabin camera" detail="photo every ~10s" />
-          <ContinuousRow live={live} icon={<PhotoCameraOutlined fontSize="small" />} label="Road camera" detail="photo every ~10s" />
+          <ContinuousRow live={live} icon={<PhotoCameraOutlined fontSize="small" />} label="Cabin camera" detail="photo every ~10s · sent to the black box every 10 min" />
+          <ContinuousRow live={live} icon={<PhotoCameraOutlined fontSize="small" />} label="Road camera" detail="photo every ~10s · sent to the black box every 10 min" />
           <ContinuousRow live={live} icon={<GraphicEqOutlined fontSize="small" />} label="In‑cabin audio" detail="rolling buffer (keeps the seconds before impact)" />
         </Stack>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
@@ -158,6 +158,15 @@ export function TransferVisual({ bb, live, collision }: Readonly<{ bb?: BlackBox
             <MediaPhoto src={`${media}/cabin.jpg?v=${bust}`} label="Cabin (latest)" fallback={bb?.thumbCabin} />
             <MediaPhoto src={`${media}/road.jpg?v=${bust}`} label="Road (latest)" fallback={bb?.thumbRoad} />
           </Stack>
+        )}
+
+        {media && (bb?.checkpointAt ?? 0) > 0 && (bb?.preAudioSec ?? 0) > 0 && (
+          <Box sx={{ mt: 1.25 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 700 }}>
+              10‑minute checkpoint transferred at {new Date(bb?.checkpointAt ?? 0).toLocaleTimeString()} · audio ({bb?.preAudioSec}s) + photos
+            </Typography>
+            <audio controls preload="none" src={`${media}/pre.m4a?v=${bb?.checkpointAt}`} style={{ width: '100%' }} />
+          </Box>
         )}
 
         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, display: 'block', mt: 2, mb: 0.75 }}>

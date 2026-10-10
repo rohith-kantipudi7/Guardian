@@ -36,6 +36,7 @@ export interface BlackBox {
   images?: number;
   frames?: number;
   media?: string; // phone-hosted media server base URL
+  checkpointAt?: number; // epoch ms of the last 10-minute audio+photo checkpoint
   thumbCabin?: string; // base64 JPEG thumbnails the device keeps if the phone is lost
   thumbRoad?: string;
   assessment?: string;
