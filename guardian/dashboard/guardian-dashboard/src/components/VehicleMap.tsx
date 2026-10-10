@@ -8,7 +8,7 @@ export function VehicleMap({ incidents, focusId, height }: { incidents: CrashEve
       id: c.eventId,
       latitude: c.latitude as number,
       longitude: c.longitude as number,
-      label: `${c.vehicleId ?? c.deviceId} · ${c.severity}`,
+      label: `${c.vehicleId ?? c.deviceId} · collision`,
       severity: c.severity,
     }));
   return <MapView markers={markers} focusId={focusId} height={height} />;

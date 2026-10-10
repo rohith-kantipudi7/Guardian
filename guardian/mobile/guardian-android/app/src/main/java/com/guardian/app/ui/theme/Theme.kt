@@ -4,51 +4,54 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
-import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// Command-center palette, matched to the web dashboard.
-val Ok = Color(0xFF22C55E)
-val Bad = Color(0xFFF43F5E)
-val Warn = Color(0xFFF59E0B)
-val Critical = Color(0xFFF43F5E)
-val Info = Color(0xFF10B981)
-val Violet = Color(0xFFA78BFA)
-val Muted = Color(0xFF94A3B8)
+// Neumorphic light palette, matched to the web dashboard.
+val Ok = Color(0xFF1E8E4E)
+val Bad = Color(0xFFD92D4A)
+val Warn = Color(0xFFB7791F)
+val Critical = Color(0xFFD92D4A)
+val Info = Color(0xFF2563EB)
+val Violet = Color(0xFF52617A)
+val Muted = Color(0xFF5B6B82)
 
-val Bg = Color(0xFF06090F)
-val Surface1 = Color(0xFF0E1420)
-val Surface2 = Color(0xFF151D2C)
-val Line = Color(0xFF233044)
+val Bg = Color(0xFFE4E9F0)
+val Surface1 = Bg
+val Surface2 = Bg
+val Line = Color(0xFFCBD3DF)
+val ShadowDark = Color(0xFFB8C1D0)
+val ShadowLight = Color(0xFFFFFFFF)
+val TextPrimary = Color(0xFF1F2937)
 
-// Brand gradient stops (cyan -> blue -> indigo) for hero surfaces and the brand mark.
-val BrandCyan = Color(0xFF10B981)
-val BrandBlue = Color(0xFF059669)
-val BrandIndigo = Color(0xFF34D399)
+val BrandCyan = Info
+val BrandBlue = Info
+val BrandIndigo = Info
 
-val BrandBrush = Brush.linearGradient(listOf(BrandCyan, BrandIndigo))
-val DangerBrush = Brush.linearGradient(listOf(Color(0xFFF43F5E), Color(0xFFE11D48)))
+val BrandBrush: Brush = SolidColor(Info)
+val DangerBrush: Brush = SolidColor(Critical)
 
-private val Scheme = darkColorScheme(
+private val Scheme = lightColorScheme(
     primary = Info,
-    onPrimary = Color(0xFF06251A),
+    onPrimary = Color.White,
     secondary = Violet,
     error = Critical,
-    onError = Color(0xFF1A0308),
+    onError = Color.White,
     background = Bg,
-    onBackground = Color(0xFFF1F5F9),
-    surface = Surface1,
-    onSurface = Color(0xFFF1F5F9),
-    surfaceVariant = Surface2,
+    onBackground = TextPrimary,
+    surface = Bg,
+    onSurface = TextPrimary,
+    surfaceVariant = Bg,
     onSurfaceVariant = Muted,
-    surfaceContainer = Surface1,
-    surfaceContainerHigh = Surface2,
+    surfaceContainer = Bg,
+    surfaceContainerHigh = Bg,
     outline = Line,
     outlineVariant = Line,
 )
@@ -67,11 +70,10 @@ private val Type = Typography(
 
 private val Shape = Shapes(
     small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(18.dp),
-    large = RoundedCornerShape(24.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(20.dp),
 )
 
 @Composable
 fun GuardianTheme(content: @Composable () -> Unit) =
     MaterialTheme(colorScheme = Scheme, typography = Type, shapes = Shape, content = content)
-

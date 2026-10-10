@@ -25,17 +25,11 @@ import { KpiCard } from '../components/KpiCard';
 import { MapView, type MapMarker } from '../components/map/MapView';
 import { DispatchLog, IncidentTimeline, MediaGallery } from '../components/IncidentPanels';
 import { config } from '../config';
+import { CollisionBanner } from '../components/CollisionBanner';
 import { useBackupAlert } from '../hooks/useBackupAlert';
 import { useCollision } from '../hooks/useCollision';
 import { useBlackBox, useDeviceData, usePhoneData } from '../services/device';
 import type { Severity } from '../types';
-
-function severityColor(sev?: string): 'error' | 'warning' | 'info' | 'default' {
-  if (sev === 'CRITICAL') return 'error';
-  if (sev === 'MODERATE') return 'warning';
-  if (sev === 'MINOR') return 'info';
-  return 'default';
-}
 
 function parseCoords(location?: string): { lat: number; lon: number } | null {
   const parts = location?.split(',');
@@ -96,7 +90,7 @@ export function ResponderOps() {
           id: bb?.eventId ?? 'incident',
           latitude: coords.lat,
           longitude: coords.lon,
-          label: `${bb?.severity ?? 'Incident'} crash`,
+          label: 'Collision detected',
           severity: bb?.severity as Severity | undefined,
         },
       ]
@@ -114,6 +108,9 @@ export function ResponderOps() {
 
       {!deviceOnline && (
         <Alert severity="warning">Device offline. Connect to the Guardian hotspot to see live incidents.</Alert>
+      )}
+      {collision && (
+        <CollisionBanner eventId={bb?.eventId !== 'LIVE' ? bb?.eventId : undefined} detail="Incident open. Responders are being alerted." />
       )}
       {alert.active && (
         <Alert
@@ -162,7 +159,7 @@ export function ResponderOps() {
             {bb?.eventId ? (
               <Stack spacing={1.2} sx={{ mt: 1 }}>
                 <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-                  <Chip size="small" color={severityColor(bb.severity)} label={bb.severity ?? '—'} />
+                  <Chip size="small" color="error" label="Collision detected" />
                   <Chip size="small" variant="outlined" label={`${Math.round((bb.confidence ?? 0) * 100)}% confidence`} />
                   <Chip size="small" variant="outlined" label={`${bb.images ?? 0} photos`} />
                   <Chip size="small" variant="outlined" label={`${bb.preAudioSec ?? 0}s + ${bb.audioSec ?? 0}s audio`} />

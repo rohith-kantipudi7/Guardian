@@ -282,11 +282,11 @@ class GuardianViewModel(
                     startedAtMs = System.currentTimeMillis(),
                     responders = c.responders,
                 )
-                if (settings.value.notifications) notifier?.crash("CRASH DETECTED", "${e.severity} - police, ambulance & family alerted")
+                if (settings.value.notifications) notifier?.crash("COLLISION DETECTED", "Police, ambulance & family alerted")
                 alarmSiren?.start()
             }
             c.type == "CRASH_DETECTED" ->
-                _message.value = "${e.severity} crash was reported by your vehicle device while this phone was disconnected"
+                _message.value = "A collision was reported by your vehicle device while this phone was disconnected"
         }
     }
 
@@ -298,7 +298,7 @@ class GuardianViewModel(
                 .copy(state = c.state, severity = c.severity ?: current?.severity, confidence = c.confidence ?: current?.confidence,
                     verifyRemainingMs = c.verifyRemainingMs)
             if (startedNew && settings.value.notifications) {
-                notifier?.crash("CRASH DETECTED", "${c.severity ?: ""} - tap to respond")
+                notifier?.crash("COLLISION DETECTED", "Tap to respond")
             }
             if (startedNew) alarmSiren?.start()
         } else if (current != null) {
@@ -342,14 +342,14 @@ class GuardianViewModel(
         addAnomaly(
             AnomalyEvent(
                 AnomalyType.CRASH,
-                "${r.severity.name} · ${(r.confidence * 100).toInt()}%",
+                "Collision detected · ${(r.confidence * 100).toInt()}%",
                 r.accelPeakG,
                 System.currentTimeMillis(),
                 critical = r.severity == Severity.CRITICAL,
             ),
         )
         if (settings.value.notifications) {
-            notifier?.crash("CRASH DETECTED", "${r.severity} impact detected on your phone")
+            notifier?.crash("COLLISION DETECTED", "Impact detected on your phone")
         }
         // Real dispatch: text the occupant's emergency contacts over cellular SMS (no internet needed).
         viewModelScope.launch {

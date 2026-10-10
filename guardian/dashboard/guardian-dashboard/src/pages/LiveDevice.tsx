@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { CollisionBanner } from '../components/CollisionBanner';
 import {
   Alert,
   Avatar,
@@ -103,11 +104,10 @@ export function LiveDevice() {
       </Box>
 
       {collision && (
-        <Alert severity="error" variant="filled" sx={{ fontWeight: 800 }}>
-          COLLISION DETECTED{crashRecord && bb?.severity ? ` · ${bb.severity}` : ''}
-          {crashRecord && bb?.eventId ? ` · ${bb.eventId}` : ''} — receiving the black box and Guardian AI is placing the
-          emergency call.
-        </Alert>
+        <CollisionBanner
+          eventId={crashRecord ? bb?.eventId : undefined}
+          detail="Receiving the black box. Guardian AI is placing the emergency call."
+        />
       )}
 
       {backupAlert && (

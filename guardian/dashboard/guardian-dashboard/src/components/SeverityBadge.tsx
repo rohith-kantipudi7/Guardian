@@ -1,12 +1,12 @@
 import { Chip } from '@mui/material';
-import { severityColor, statusHex, statusLabel } from '../format';
+import { statusHex, statusLabel } from '../format';
 import type { CrashStatus, Severity } from '../types';
 
 export function SeverityBadge({ severity, size = 'small' }: { severity: Severity; size?: 'small' | 'medium' }) {
   return (
     <Chip
-      label={severity}
-      color={severityColor[severity]}
+      label={severity === 'NORMAL' ? 'NORMAL' : 'COLLISION DETECTED'}
+      color={severity === 'NORMAL' ? 'default' : 'error'}
       size={size}
       sx={{
         fontWeight: 800,

@@ -70,6 +70,8 @@ import com.guardian.app.ui.components.SectionCard
 import com.guardian.app.ui.components.StatusRow
 import com.guardian.app.ui.components.formatTimestampMs
 import com.guardian.app.ui.theme.BrandBrush
+import com.guardian.app.ui.theme.Info
+import com.guardian.app.ui.theme.neu
 import com.guardian.app.ui.theme.Critical
 import com.guardian.app.ui.theme.Line
 import com.guardian.app.ui.theme.Muted
@@ -103,10 +105,10 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
-                Modifier.size(46.dp).background(BrandBrush, RoundedCornerShape(16.dp)),
+                Modifier.size(46.dp).neu(16.dp, 4.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Icon(Icons.Rounded.Shield, null, tint = Color(0xFF06121F), modifier = Modifier.size(26.dp))
+                Icon(Icons.Rounded.Shield, null, tint = Info, modifier = Modifier.size(26.dp))
             }
             Spacer(Modifier.width(12.dp))
             Column(Modifier.weight(1f)) {
@@ -120,19 +122,13 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
         Box(
             Modifier
                 .fillMaxWidth()
-                .background(
-                    Brush.verticalGradient(
-                        listOf((if (protected) Ok else Warn).copy(alpha = 0.22f), MaterialTheme.colorScheme.surface),
-                    ),
-                    MaterialTheme.shapes.large,
-                )
-                .border(1.dp, (if (protected) Ok else Warn).copy(alpha = 0.35f), MaterialTheme.shapes.large)
+                .neu(24.dp, 8.dp)
                 .padding(20.dp),
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
-                        Modifier.size(64.dp).background((if (protected) Ok else Warn).copy(alpha = 0.16f), CircleShape),
+                        Modifier.size(64.dp).neu(32.dp, 4.dp),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(
@@ -289,8 +285,7 @@ private fun RowScope.StatChip(label: String, value: String, icon: androidx.compo
     Column(
         Modifier
             .weight(1f)
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.55f), RoundedCornerShape(14.dp))
-            .border(1.dp, Line, RoundedCornerShape(14.dp))
+            .neu(14.dp, 3.dp)
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp),
     ) {

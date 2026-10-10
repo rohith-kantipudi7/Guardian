@@ -13,7 +13,7 @@ const FLOW: { icon: ReactNode; title: string; who: string; text: string }[] = [
     icon: <SensorsOutlined />,
     title: 'Crash detected',
     who: 'Vehicle device',
-    text: "IMU + GPS + speed scored on the device. Moderate crashes give the driver 10 s to tap I'M SAFE.",
+    text: "IMU + GPS + speed scored on the device. A collision gives the driver 10 s to tap I'M SAFE.",
   },
   {
     icon: <CellTowerOutlined />,

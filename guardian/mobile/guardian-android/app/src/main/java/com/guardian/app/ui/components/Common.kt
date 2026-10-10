@@ -44,6 +44,7 @@ import com.guardian.app.ui.theme.Muted
 import com.guardian.app.ui.theme.Ok
 import com.guardian.app.ui.theme.Surface2
 import com.guardian.app.ui.theme.Warn
+import com.guardian.app.ui.theme.neu
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -58,7 +59,7 @@ fun SectionCard(
     Card(
         modifier
             .fillMaxWidth()
-            .border(1.dp, Line, MaterialTheme.shapes.large),
+            .neu(20.dp, 6.dp),
         shape = MaterialTheme.shapes.large,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
     ) {
@@ -84,8 +85,7 @@ fun Pill(text: String, color: Color, modifier: Modifier = Modifier) {
     Text(
         text.uppercase(),
         modifier
-            .background(color.copy(alpha = 0.16f), RoundedCornerShape(50))
-            .border(1.dp, color.copy(alpha = 0.35f), RoundedCornerShape(50))
+            .background(color.copy(alpha = 0.12f), RoundedCornerShape(8.dp))
             .padding(horizontal = 12.dp, vertical = 5.dp),
         color = color,
         fontSize = 11.sp,
@@ -131,8 +131,7 @@ fun ConnectionChain(nodes: List<ChainNode>, links: List<ChainLink>) {
                 Box(
                     Modifier
                         .size(46.dp)
-                        .background(stateColor(n.ok).copy(alpha = 0.14f), CircleShape)
-                        .border(2.dp, stateColor(n.ok), CircleShape),
+                        .neu(23.dp, 3.dp),
                     contentAlignment = Alignment.Center,
                 ) { Icon(n.icon, null, tint = stateColor(n.ok)) }
                 Spacer(Modifier.height(6.dp))
@@ -164,8 +163,7 @@ fun ResponderRow(r: Responder) {
     Row(
         Modifier
             .fillMaxWidth()
-            .background(Surface2, MaterialTheme.shapes.medium)
-            .border(1.dp, Line, MaterialTheme.shapes.medium)
+            .neu(16.dp, 3.dp)
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

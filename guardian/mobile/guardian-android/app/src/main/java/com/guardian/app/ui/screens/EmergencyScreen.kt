@@ -51,15 +51,19 @@ import com.guardian.app.ui.EmergencyAlert
 import com.guardian.app.ui.components.CaptureEvidence
 import com.guardian.app.ui.components.ResponderRow
 import com.guardian.app.ui.components.formatCoords
-import com.guardian.app.ui.components.severityColor
+import com.guardian.app.ui.theme.Bg
+import com.guardian.app.ui.theme.Critical
 import com.guardian.app.ui.theme.Muted
+import com.guardian.app.ui.theme.Ok
+import com.guardian.app.ui.theme.TextPrimary
+import com.guardian.app.ui.theme.neu
 import com.guardian.app.ui.theme.Warn
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 @Composable
 fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -> Unit) {
-    val color = severityColor(alert.severity)
+    val color = Critical
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) {
         while (true) {
@@ -86,7 +90,7 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
     Column(
         Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(Color(0xFF4A0D0D), Color(0xFF140708))))
+            .background(Bg)
             .verticalScroll(rememberScrollState())
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -94,67 +98,72 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
     ) {
         Spacer(Modifier.height(8.dp))
         Box(
-            Modifier.size(88.dp).scale(pulse).background(color.copy(alpha = 0.25f), CircleShape),
+            Modifier.fillMaxWidth().neu(24.dp, 8.dp).padding(vertical = 24.dp, horizontal = 16.dp),
             contentAlignment = Alignment.Center,
-        ) { Icon(Icons.Rounded.CarCrash, null, tint = color, modifier = Modifier.size(48.dp)) }
-        Text("CRASH DETECTED", fontSize = 32.sp, fontWeight = FontWeight.Black, color = Color(0xFFFF6B6B))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(alert.severity?.name ?: "—", fontSize = 20.sp, fontWeight = FontWeight.Black, color = color)
-            Text(
-                "  ·  ${alert.confidence?.let { "${(it * 100).roundToInt()}%" } ?: "—"}  ·  ${elapsed / 60}m ${elapsed % 60}s ago",
-                color = Color(0xFFFECACA),
-            )
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Box(
+                    Modifier.size(88.dp).scale(pulse).neu(44.dp, 5.dp),
+                    contentAlignment = Alignment.Center,
+                ) { Icon(Icons.Rounded.CarCrash, null, tint = color, modifier = Modifier.size(48.dp)) }
+                Text("COLLISION DETECTED", fontSize = 34.sp, fontWeight = FontWeight.Black, color = Critical, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                Text(
+                    "${elapsed / 60}m ${elapsed % 60}s ago",
+                    color = Muted,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
         }
 
         Box(
-            Modifier.fillMaxWidth().background(Color(0x33000000), androidx.compose.material3.MaterialTheme.shapes.medium).padding(14.dp),
+            Modifier.fillMaxWidth().neu(16.dp, 3.dp).padding(14.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (!alert.delivered) {
                     CircularProgressIndicator(Modifier.size(18.dp), color = Warn, strokeWidth = 2.dp)
                     Spacer(Modifier.width(10.dp))
                 }
-                Text(headline, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Text(headline, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
         }
 
         alert.aiAssessment?.let { ai ->
             Column(
                 Modifier.fillMaxWidth()
-                    .background(Color(0x22000000), androidx.compose.material3.MaterialTheme.shapes.medium)
+                    .neu(16.dp, 3.dp)
                     .padding(14.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Psychology, null, tint = Color(0xFF6EE7B7), modifier = Modifier.size(18.dp))
+                    Icon(Icons.Rounded.Psychology, null, tint = Ok, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(
                         if (ai.onDevice) "ON-DEVICE AI · ${ai.model}" else "CLOUD AI · ${ai.model}",
-                        color = Color(0xFF6EE7B7),
+                        color = Ok,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold,
                         letterSpacing = 1.2.sp,
                     )
                 }
-                Text(ai.whatHappened, color = Color.White, fontSize = 14.sp)
-                Text(ai.occupantState, color = Color(0xFFFECACA), fontSize = 13.sp)
-                Text(ai.recommendation, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(ai.whatHappened, color = TextPrimary, fontSize = 14.sp)
+                Text(ai.occupantState, color = Muted, fontSize = 13.sp)
+                Text(ai.recommendation, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
         }
 
         if (alert.state == CrashState.EMERGENCY_ACTIVE && alert.blackBox?.audioPath == null) {
             Row(
                 Modifier.fillMaxWidth()
-                    .background(Color(0x22000000), androidx.compose.material3.MaterialTheme.shapes.medium)
+                    .neu(16.dp, 3.dp)
                     .padding(14.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                CircularProgressIndicator(Modifier.size(18.dp), color = Color(0xFF6EE7B7), strokeWidth = 2.dp)
+                CircularProgressIndicator(Modifier.size(18.dp), color = Ok, strokeWidth = 2.dp)
                 Spacer(Modifier.width(10.dp))
                 Text(
                     if (alert.blackBox == null) "Capturing cabin + road photos and in-cabin voice…"
                     else "Recording in-cabin audio…",
-                    color = Color.White,
+                    color = TextPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                 )
@@ -164,22 +173,22 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
         alert.blackBox?.let { bb ->
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.GraphicEq, null, tint = Color(0xFF6EE7B7), modifier = Modifier.size(18.dp))
+                    Icon(Icons.Rounded.GraphicEq, null, tint = Ok, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text(
                         if (bb.audioPath != null || bb.preAudioPath != null)
                             "In-cabin audio captured (${bb.preAudioDurationSec}s before + ${bb.audioDurationSec}s after)"
                         else "Black box: sensor log stored",
-                        color = Color(0xFFFECACA),
+                        color = Muted,
                         fontSize = 13.sp,
                     )
                 }
                 if (bb.syncedToDevice) {
-                    Text("Black box synced to vehicle device", color = Color(0xFF86EFAC), fontSize = 12.sp)
+                    Text("Black box synced to vehicle device", color = Ok, fontSize = 12.sp)
                 }
                 val photos = listOfNotNull(bb.cabinImagePath, bb.roadImagePath).size
                 if (photos > 0) {
-                    Text("$photos camera photo(s) captured (cabin + road)", color = Color(0xFFFECACA), fontSize = 13.sp)
+                    Text("$photos camera photo(s) captured (cabin + road)", color = Muted, fontSize = 13.sp)
                 }
                 if (photos > 0 || bb.audioPath != null) {
                     Spacer(Modifier.height(4.dp))
@@ -188,7 +197,7 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
                         roadPath = bb.roadImagePath,
                         audioPath = bb.audioPath,
                         audioDurationSec = bb.audioDurationSec,
-                        accent = Color(0xFF6EE7B7),
+                        accent = Ok,
                         preAudioPath = bb.preAudioPath,
                         preAudioDurationSec = bb.preAudioDurationSec,
                     )
@@ -198,25 +207,25 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
 
         if (alert.dispatches.isNotEmpty()) {
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("EMERGENCY SMS DISPATCHED", color = Color(0xFFFECACA), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                Text("EMERGENCY SMS DISPATCHED", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
                 alert.dispatches.forEach { dsp ->
                     Column(
                         Modifier.fillMaxWidth()
-                            .background(Color(0x22000000), androidx.compose.material3.MaterialTheme.shapes.medium)
+                            .neu(16.dp, 3.dp)
                             .padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 "${dsp.label} · ${dsp.recipient}",
-                                color = Color.White,
+                                color = TextPrimary,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.sp,
                                 modifier = Modifier.weight(1f),
                             )
                             Text(
                                 if (dsp.sent) "SENT ✓" else "READY",
-                                color = if (dsp.sent) Color(0xFF86EFAC) else Color(0xFFFECACA),
+                                color = if (dsp.sent) Ok else Muted,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                             )
@@ -238,7 +247,7 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
 
         if (alert.responders.isNotEmpty()) {
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("WHO HAS BEEN ALERTED", color = Color(0xFFFECACA), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                Text("WHO HAS BEEN ALERTED", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
                 alert.responders.forEach { ResponderRow(it) }
                 Text(
                     "They received your location, vehicle and crash details by SMS. \"Seen\" means they opened it.",
@@ -249,11 +258,11 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
         }
 
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Rounded.LocationOn, null, tint = Color(0xFFFECACA))
+            Icon(Icons.Rounded.LocationOn, null, tint = Muted)
             Spacer(Modifier.width(8.dp))
             Text(
                 if (alert.latitude != null) formatCoords(alert.latitude, alert.longitude) else "Location sent by the vehicle device",
-                color = Color.White,
+                color = TextPrimary,
             )
         }
 
@@ -262,10 +271,10 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
             onClick = onImSafe,
             modifier = Modifier.fillMaxWidth().height(76.dp),
             shape = androidx.compose.material3.MaterialTheme.shapes.large,
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF16A34A), contentColor = Color.White),
+            colors = ButtonDefaults.buttonColors(containerColor = Ok, contentColor = Color.White),
         ) { Text("I'M SAFE", fontSize = 28.sp, fontWeight = FontWeight.Black) }
         Text("Tapping cancels the emergency and tells every responder to stand down.", color = Muted, fontSize = 12.sp)
-        TextButton(onClick = onDismiss) { Text("Hide (emergency stays active)", color = Color(0xFFFECACA)) }
+        TextButton(onClick = onDismiss) { Text("Hide (emergency stays active)", color = Muted) }
     }
 }
 
@@ -278,16 +287,15 @@ private fun AiEmergencyCall(alert: EmergencyAlert) {
         animationSpec = infiniteRepeatable(tween(700), RepeatMode.Reverse),
         label = "ring",
     )
-    val sev = alert.severity?.name ?: "A"
-    val script = "\"$sev collision detected. An occupant may be injured and unresponsive. " +
+    val script = "\"Collision detected. An occupant may be injured and unresponsive. " +
         "Requesting immediate dispatch to the location.\""
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Rounded.Call, null, tint = Color(0xFFFF6B6B), modifier = Modifier.size(18.dp))
+            Icon(Icons.Rounded.Call, null, tint = Critical, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
             Text(
                 "GUARDIAN AI · PLACING EMERGENCY CALL",
-                color = Color(0xFFFF6B6B),
+                color = Critical,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.2.sp,
@@ -295,24 +303,24 @@ private fun AiEmergencyCall(alert: EmergencyAlert) {
         }
         Column(
             Modifier.fillMaxWidth()
-                .background(Color(0x22000000), androidx.compose.material3.MaterialTheme.shapes.medium)
+                .neu(16.dp, 3.dp)
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text("AI voice to dispatcher", color = Color(0xFFFECACA), fontSize = 11.sp, fontWeight = FontWeight.Bold)
-            Text(script, color = Color.White, fontSize = 13.sp)
+            Text("AI voice to dispatcher", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text(script, color = TextPrimary, fontSize = 13.sp)
         }
         listOf("Police" to "112", "Ambulance" to "108", "Family" to "Emergency contact").forEach { (label, number) ->
             Row(
                 Modifier.fillMaxWidth()
-                    .background(Color(0x22000000), androidx.compose.material3.MaterialTheme.shapes.medium)
+                    .neu(16.dp, 3.dp)
                     .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("$label · $number", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                Text("CALLING", color = Color(0xFFFF6B6B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Text("$label · $number", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                Text("CALLING", color = Critical, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.width(8.dp))
-                Box(Modifier.size(9.dp).scale(ring).background(Color(0xFFFF6B6B), CircleShape))
+                Box(Modifier.size(9.dp).scale(ring).background(Critical, CircleShape))
             }
         }
         Text(

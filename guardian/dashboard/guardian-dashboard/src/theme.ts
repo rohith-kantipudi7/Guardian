@@ -114,6 +114,19 @@ export const theme = createTheme({
       },
     },
     MuiAlert: { styleOverrides: { root: { borderRadius: 12 } } },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: { borderRadius: 12, boxShadow: neu.inset, '& fieldset': { border: 'none' } },
+      },
+    },
+    MuiToggleButton: {
+      styleOverrides: {
+        root: { border: 'none', borderRadius: 10, boxShadow: neu.raisedSm, '&.Mui-selected': { boxShadow: neu.insetSm, backgroundColor: bg } },
+      },
+    },
+    MuiTableRow: { styleOverrides: { root: { '&.MuiTableRow-hover:hover': { backgroundColor: alpha(shadowDark, 0.25) } } } },
+    MuiDivider: { styleOverrides: { root: { borderColor: alpha(shadowDark, 0.6) } } },
+    MuiAvatar: { styleOverrides: { root: { boxShadow: neu.raisedSm } } },
     MuiTooltip: {
       styleOverrides: { tooltip: { fontSize: 13, backgroundColor: '#1F2937', color: '#F8FAFC' } },
     },
