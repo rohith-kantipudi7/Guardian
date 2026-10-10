@@ -21,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.CarCrash
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.LocationOn
@@ -231,6 +232,10 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
             }
         }
 
+        if (alert.state == CrashState.EMERGENCY_ACTIVE) {
+            AiEmergencyCall(alert)
+        }
+
         if (alert.responders.isNotEmpty()) {
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("WHO HAS BEEN ALERTED", color = Color(0xFFFECACA), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
@@ -261,5 +266,59 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
         ) { Text("I'M SAFE", fontSize = 28.sp, fontWeight = FontWeight.Black) }
         Text("Tapping cancels the emergency and tells every responder to stand down.", color = Muted, fontSize = 12.sp)
         TextButton(onClick = onDismiss) { Text("Hide (emergency stays active)", color = Color(0xFFFECACA)) }
+    }
+}
+
+/** Guardian AI placing the emergency call — simulated when no SIM, auto-dials with one. */
+@Composable
+private fun AiEmergencyCall(alert: EmergencyAlert) {
+    val ring by rememberInfiniteTransition(label = "ring").animateFloat(
+        initialValue = 0.4f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(700), RepeatMode.Reverse),
+        label = "ring",
+    )
+    val sev = alert.severity?.name ?: "A"
+    val script = "\"$sev collision detected. An occupant may be injured and unresponsive. " +
+        "Requesting immediate dispatch to the location.\""
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Rounded.Call, null, tint = Color(0xFFFF6B6B), modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(
+                "GUARDIAN AI · PLACING EMERGENCY CALL",
+                color = Color(0xFFFF6B6B),
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 1.2.sp,
+            )
+        }
+        Column(
+            Modifier.fillMaxWidth()
+                .background(Color(0x22000000), androidx.compose.material3.MaterialTheme.shapes.medium)
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Text("AI voice to dispatcher", color = Color(0xFFFECACA), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            Text(script, color = Color.White, fontSize = 13.sp)
+        }
+        listOf("Police" to "112", "Ambulance" to "108", "Family" to "Emergency contact").forEach { (label, number) ->
+            Row(
+                Modifier.fillMaxWidth()
+                    .background(Color(0x22000000), androidx.compose.material3.MaterialTheme.shapes.medium)
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("$label · $number", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.weight(1f))
+                Text("CALLING", color = Color(0xFFFF6B6B), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Spacer(Modifier.width(8.dp))
+                Box(Modifier.size(9.dp).scale(ring).background(Color(0xFFFF6B6B), CircleShape))
+            }
+        }
+        Text(
+            "No SIM: shown as the call that would be placed. With a SIM this auto-dials (ACTION_CALL).",
+            color = Muted,
+            fontSize = 11.sp,
+        )
     }
 }

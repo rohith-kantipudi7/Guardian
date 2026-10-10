@@ -23,9 +23,9 @@ are **not committed** (size); fetch them once before building:
 ```powershell
 # from mobile/guardian-android
 git clone --depth 1 https://github.com/ggerganov/whisper.cpp
-# tiny English model (~75 MB) into the app assets
-curl.exe -L -o app/src/main/assets/models/ggml-tiny.en.bin `
-  https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin
+# base English model (~142 MB) into the app assets
+curl.exe -L -o app/src/main/assets/models/ggml-base.en.bin `
+  https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin
 ```
 
 The native lib builds via `app/src/main/cpp/CMakeLists.txt` (NDK 26, CMake 3.22, arm64-v8a). If the

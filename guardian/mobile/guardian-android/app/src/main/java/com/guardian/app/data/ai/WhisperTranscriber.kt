@@ -56,7 +56,7 @@ class WhisperCppTranscriber(private val context: Context) : WhisperTranscriber {
     }
 
     private companion object {
-        const val MODEL_ASSET = "models/ggml-tiny.en.bin"
+        const val MODEL_ASSET = "models/ggml-base.en.bin"
         const val TAG = "WhisperCpp"
     }
 }

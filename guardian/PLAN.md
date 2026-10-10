@@ -41,7 +41,7 @@ CRASH
 - [x] **Live demo**: "Capture test" button runs the real dual‑camera + mic now (no crash needed)
 - [x] Show the captured **cabin + road photos** and **play before/after audio** in‑app (emergency + demo)
 - [~] Extend the AI to read the captured media: **audio is now transcribed on‑device**
-      (whisper.cpp `tiny.en`, native JNI/CMake) and the **transcript feeds the AI + dashboard**;
+      (whisper.cpp `base.en`, native JNI/CMake) and the **transcript feeds the AI + dashboard**;
       image **bytes** are still summarised as evidence (not pixel‑level vision yet)
 
 ## 2. IoT device = backup + full data transfer
@@ -106,7 +106,7 @@ CRASH
       honours the sketch `backupAlert` flag once flashed)
 - [x] **Background mode** — foreground service (camera + mic + dataSync) keeps detection, the rolling
       black box and streaming alive when backgrounded
-- [x] **Precise detection** — free‑fall rejection (dropped phone ≠ accident); only MODERATE+ raises
+- [x] **Precise dection** — free‑fall rejection (dropped phone ≠ accident); only MODERATE+ raises
       an accident; small jolts → abnormal‑activity warning
 - [x] **Live transfer demo** — toggle streams an evolving black‑box snapshot to the device every 3 s
 - [x] Device IP configurable (currently `192.168.137.52`)
@@ -120,13 +120,15 @@ Waiting on the buzzer component. Firmware driver + Copilot prompt are ready; wir
 
 ### 3. Connectivity without a SIM — [~] showcased in the UI
 - No SIM = no real SMS/call can go out. **Showcase in the UI**: SMS content (done) **and an AI
-  emergency‑call visual** on the dashboard — `CallVisual` shows the **Guardian AI placing the call**
-  to Police 112 / Ambulance 108 / family, reading the incident, and **only renders after a crash
-  record is received** (never during monitoring).
+  emergency‑call visual** on **both the dashboard and the phone** — `CallVisual` (web) +
+  `AiEmergencyCall` (mobile) show the **Guardian AI placing the call** to Police 112 / Ambulance 108 /
+  family, reading the incident, and **only appear once a collision has occurred** (the dashboard
+  shows a **COLLISION DETECTED** message first, then the call + transfer load; the phone shows it on
+  the emergency screen).
 - With a SIM later: real SMS (built) + `ACTION_CALL` auto‑dial.
 
 ### 4. Continuous audio processing (transcription) — [x] done
-- **On‑device Whisper** (`whisper.cpp` `tiny.en`) built natively (NDK 26 / CMake 3.22, arm64‑v8a);
+- **On‑device Whisper** (`whisper.cpp` `base.en`) built natively (NDK 26 / CMake 3.22, arm64‑v8a);
   `AudioDecoder` turns the recorded AAC clip into 16 kHz mono PCM and `WhisperCppTranscriber` runs it.
 - The **after‑impact** clip is transcribed on crash; the transcript is added to the black‑box bundle
   + transfer JSON and shown on the dashboard. (Before‑impact is the same continuous rolling audio.)
@@ -153,8 +155,7 @@ Waiting on the buzzer component. Firmware driver + Copilot prompt are ready; wir
 ## Needed from you
 - [ ] **SIM card** for real SMS/calls (currently showcased in the UI only — incl. the AI call visual)
 - [ ] **Buzzer component** for the IoT alarm
-- [x] Decided **Whisper** target: **on‑device** `whisper.cpp` `tiny.en` (offline). Bump to `base.en`
-      for better accuracy if the larger APK is acceptable.
+- [x] Decided **Whisper** target: **on‑device** `whisper.cpp` `base.en` (offline, ~142 MB model).
 - [ ] **Rotate the Azure keys** in `.env` — they were exposed in chat and must be regenerated
 
 ## Already in place (starting point)

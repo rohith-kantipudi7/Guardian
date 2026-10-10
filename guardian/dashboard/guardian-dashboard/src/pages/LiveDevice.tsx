@@ -86,6 +86,10 @@ export function LiveDevice() {
   const phoneOnline = !!p?.phoneOnline;
   const [alert] = useBackupAlert(d, p);
   const backupAlert = alert.active;
+  // "Collision occurred" message the dashboard reacts to: a real transferred crash record, the
+  // device's own IMU collision count, or an inferred backup alert. Drives the call + transfer below.
+  const crashRecord = !!bb && (bb.severity ?? '').toUpperCase() !== 'MONITORING' && bb.eventId !== 'LIVE';
+  const collision = crashRecord || (d?.count ?? 0) > 0 || backupAlert;
 
   return (
     <Stack spacing={3}>
@@ -96,6 +100,14 @@ export function LiveDevice() {
           simulator.
         </Typography>
       </Box>
+
+      {collision && (
+        <Alert severity="error" variant="filled" sx={{ fontWeight: 800 }}>
+          COLLISION DETECTED{crashRecord && bb?.severity ? ` · ${bb.severity}` : ''}
+          {crashRecord && bb?.eventId ? ` · ${bb.eventId}` : ''} — receiving the black box and Guardian AI is placing the
+          emergency call.
+        </Alert>
+      )}
 
       {backupAlert && (
         <Alert severity="error" variant="filled" sx={{ fontWeight: 700 }}>
