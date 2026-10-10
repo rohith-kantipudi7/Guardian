@@ -156,10 +156,15 @@ class Esp32DeviceClient(
     override suspend fun send(command: DeviceCommand): Boolean = false
 
     /** Streams the compact black-box bundle to the device over Wi-Fi. */
-    override suspend fun sendBlackBox(json: String): Boolean = withContext(Dispatchers.IO) {
+    override suspend fun sendBlackBox(json: String): Boolean = post("/blackbox", json)
+
+    /** Streams the phone's live signals to the device so it can show them on its web UI. */
+    override suspend fun pushPhoneSignals(json: String): Boolean = post("/phone", json)
+
+    private suspend fun post(path: String, json: String): Boolean = withContext(Dispatchers.IO) {
         try {
             val req = Request.Builder()
-                .url("${base()}/blackbox")
+                .url("${base()}$path")
                 .post(json.toRequestBody("application/json".toMediaType()))
                 .build()
             http.newCall(req).execute().use { it.isSuccessful }

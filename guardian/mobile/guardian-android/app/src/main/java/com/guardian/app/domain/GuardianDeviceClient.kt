@@ -26,4 +26,7 @@ interface GuardianDeviceClient {
 
     /** Stream the post-accident black box to the device (BLE only; other sources no-op). */
     suspend fun sendBlackBox(json: String): Boolean = false
+
+    /** Stream the phone's live sensor signals to the device in real time (Wi-Fi device only). */
+    suspend fun pushPhoneSignals(json: String): Boolean = false
 }

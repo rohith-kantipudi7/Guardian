@@ -30,6 +30,7 @@ import com.guardian.app.domain.LinkState
 import com.guardian.app.domain.Responder
 import com.guardian.app.domain.Severity
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -97,6 +98,19 @@ class GuardianViewModel(
         viewModelScope.launch { repo.liveCrashes.collect(::onLiveCrash) }
         viewModelScope.launch { sensing.crashes.collect(::onPhoneCrash) }
         viewModelScope.launch { sensing.anomalies.collect(::addAnomaly) }
+        // Stream the phone's live signals to the Wi-Fi device ~1/s so it collects phone data
+        // alongside its own and can show both on its web UI. No-op for non-Wi-Fi sources.
+        viewModelScope.launch {
+            while (true) {
+                val st = sensing.state.value
+                val emergency = _alert.value != null
+                val json = """{"accelG":${"%.2f".format(st.accelG)},""" +
+                    """"rotationRadS":${"%.2f".format(st.rotationRadS)},""" +
+                    """"detection":${st.active},"state":"${if (emergency) "EMERGENCY" else "NORMAL"}"}"""
+                runCatching { device.pushPhoneSignals(json) }
+                delay(1000)
+            }
+        }
         if (device.source != DeviceSource.BLE) device.connect()
     }
 
