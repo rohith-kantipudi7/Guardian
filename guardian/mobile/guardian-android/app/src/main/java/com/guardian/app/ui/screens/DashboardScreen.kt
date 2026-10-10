@@ -156,11 +156,6 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
                         )
                     }
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    StatChip("Impact", "%.1f g".format(sensing.accelG), Icons.Rounded.Speed, if (protected) Ok else Muted)
-                    StatChip("Rotation", "%.1f".format(sensing.rotationRadS), Icons.Rounded.ScreenRotation, if (protected) Ok else Muted)
-                    StatChip("Cameras", if (camerasArmed) "Armed" else "Off", Icons.Rounded.PhotoCamera, if (camerasArmed) Ok else Warn)
-                }
             }
         }
 
@@ -179,20 +174,6 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
             if (!linked) {
                 Button(onClick = onPair, Modifier.fillMaxWidth()) {
                     Text("Connect backup device")
-                }
-            }
-        }
-
-        SectionCard("Backup device (IoT)") {
-            if (s == null) {
-                Text("No Guardian IoT device connected. The phone protects you on its own; pair the device as a backup black box.", color = Muted, fontSize = 13.sp)
-            } else {
-                StatusRow("Mobile link (LTE)", s.cellular?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "—", lte, Icons.Rounded.CellTower)
-                StatusRow("Phone → device stream", if (deviceStreaming) "Live" else "Off", deviceStreaming, Icons.Rounded.Send)
-                StatusRow("GPS", s.gps?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "—", s.gps == "AVAILABLE", Icons.Rounded.Satellite)
-                StatusRow("Backup battery", s.battery?.let { "$it%" } ?: "—", s.battery?.let { it > 20 }, Icons.Rounded.BatteryStd)
-                if ((s.pendingEvents ?: 0) > 0) {
-                    StatusRow("Waiting to send", "${s.pendingEvents} crash report(s)", false, Icons.Rounded.Inventory2)
                 }
             }
         }

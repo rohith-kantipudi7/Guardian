@@ -21,15 +21,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.CarCrash
-import androidx.compose.material.icons.rounded.GraphicEq
-import androidx.compose.material.icons.rounded.LocationOn
-import androidx.compose.material.icons.rounded.Psychology
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -41,29 +38,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.guardian.app.domain.CrashState
 import com.guardian.app.ui.EmergencyAlert
 import com.guardian.app.ui.components.CaptureEvidence
-import com.guardian.app.ui.components.ResponderRow
 import com.guardian.app.ui.components.formatCoords
 import com.guardian.app.ui.theme.Bg
 import com.guardian.app.ui.theme.Critical
 import com.guardian.app.ui.theme.Muted
 import com.guardian.app.ui.theme.Ok
 import com.guardian.app.ui.theme.TextPrimary
-import com.guardian.app.ui.theme.neu
 import com.guardian.app.ui.theme.Warn
+import com.guardian.app.ui.theme.neu
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
+private val Label = 11.sp
+
 @Composable
 fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -> Unit) {
-    val color = Critical
     var now by remember { mutableLongStateOf(System.currentTimeMillis()) }
     LaunchedEffect(Unit) {
         while (true) {
@@ -73,19 +70,20 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
     }
     val pulse by rememberInfiniteTransition(label = "pulse").animateFloat(
         initialValue = 1f,
-        targetValue = 1.12f,
+        targetValue = 1.1f,
         animationSpec = infiniteRepeatable(tween(700), RepeatMode.Reverse),
         label = "scale",
     )
     val elapsed = ((now - alert.startedAtMs) / 1000).coerceAtLeast(0)
-    val headline = when {
+    val status = when {
         alert.state == CrashState.VERIFYING ->
             "Calling for help in ${((alert.verifyRemainingMs ?: 0) / 1000.0).roundToInt()}s unless you are safe"
         alert.helpComingFrom != null -> "Alert seen by ${alert.helpComingFrom}"
-        alert.delivered -> "Police, ambulance and your family have been alerted"
-        alert.state == CrashState.WAIT_FOR_ACK -> "No coverage — the device will keep trying to send"
-        else -> "Sending from the vehicle device…"
+        alert.delivered -> "Help has been alerted"
+        else -> "Sending alert…"
     }
+    val bb = alert.blackBox
+    val hasMedia = bb != null && (bb.cabinImagePath != null || bb.roadImagePath != null || bb.audioPath != null)
 
     Column(
         Modifier
@@ -94,239 +92,102 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
             .verticalScroll(rememberScrollState())
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Spacer(Modifier.height(8.dp))
-        Box(
-            Modifier.fillMaxWidth().neu(24.dp, 8.dp).padding(vertical = 24.dp, horizontal = 16.dp),
-            contentAlignment = Alignment.Center,
+        // 1. Collision detected
+        Column(
+            Modifier.fillMaxWidth().neu(24.dp, 8.dp).padding(vertical = 22.dp, horizontal = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Box(
-                    Modifier.size(88.dp).scale(pulse).neu(44.dp, 5.dp),
-                    contentAlignment = Alignment.Center,
-                ) { Icon(Icons.Rounded.CarCrash, null, tint = color, modifier = Modifier.size(48.dp)) }
-                Text("COLLISION DETECTED", fontSize = 34.sp, fontWeight = FontWeight.Black, color = Critical, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                Text(
-                    "${elapsed / 60}m ${elapsed % 60}s ago",
-                    color = Muted,
-                    fontWeight = FontWeight.SemiBold,
-                )
+            Box(Modifier.size(96.dp), contentAlignment = Alignment.Center) {
+                Box(Modifier.size(80.dp).scale(pulse).neu(40.dp, 5.dp), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Rounded.CarCrash, null, tint = Critical, modifier = Modifier.size(44.dp))
+                }
             }
-        }
-
-        Box(
-            Modifier.fillMaxWidth().neu(16.dp, 3.dp).padding(14.dp),
-        ) {
+            Text(
+                "COLLISION\nDETECTED",
+                fontSize = 36.sp,
+                lineHeight = 40.sp,
+                fontWeight = FontWeight.Black,
+                color = Critical,
+                textAlign = TextAlign.Center,
+            )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (!alert.delivered) {
-                    CircularProgressIndicator(Modifier.size(18.dp), color = Warn, strokeWidth = 2.dp)
-                    Spacer(Modifier.width(10.dp))
-                }
-                Text(headline, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            }
-        }
-
-        alert.aiAssessment?.let { ai ->
-            Column(
-                Modifier.fillMaxWidth()
-                    .neu(16.dp, 3.dp)
-                    .padding(14.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.Psychology, null, tint = Ok, modifier = Modifier.size(18.dp))
+                    CircularProgressIndicator(Modifier.size(14.dp), color = Warn, strokeWidth = 2.dp)
                     Spacer(Modifier.width(8.dp))
-                    Text(
-                        if (ai.onDevice) "ON-DEVICE AI · ${ai.model}" else "CLOUD AI · ${ai.model}",
-                        color = Ok,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.2.sp,
-                    )
                 }
-                Text(ai.whatHappened, color = TextPrimary, fontSize = 14.sp)
-                Text(ai.occupantState, color = Muted, fontSize = 13.sp)
-                Text(ai.recommendation, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(status, color = Muted, fontWeight = FontWeight.SemiBold, fontSize = 14.sp, textAlign = TextAlign.Center)
             }
+            Text("${elapsed / 60}m ${elapsed % 60}s ago", color = Muted, fontSize = 12.sp)
         }
 
-        if (alert.state == CrashState.EMERGENCY_ACTIVE && alert.blackBox?.audioPath == null) {
-            Row(
-                Modifier.fillMaxWidth()
-                    .neu(16.dp, 3.dp)
-                    .padding(14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+        // 2. I'm safe
+        Button(
+            onClick = onImSafe,
+            modifier = Modifier.fillMaxWidth().height(72.dp),
+            shape = MaterialTheme.shapes.large,
+            colors = ButtonDefaults.buttonColors(containerColor = Ok, contentColor = Color.White),
+        ) { Text("I'M SAFE", fontSize = 26.sp, fontWeight = FontWeight.Black) }
+
+        // 3. Photos
+        if (hasMedia && bb != null) {
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("CAPTURED", color = Muted, fontSize = Label, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                CaptureEvidence(
+                    cabinPath = bb.cabinImagePath,
+                    roadPath = bb.roadImagePath,
+                    audioPath = bb.audioPath,
+                    audioDurationSec = bb.audioDurationSec,
+                    accent = Ok,
+                    preAudioPath = bb.preAudioPath,
+                    preAudioDurationSec = bb.preAudioDurationSec,
+                )
+            }
+        } else if (alert.state == CrashState.EMERGENCY_ACTIVE) {
+            Row(Modifier.fillMaxWidth().neu(16.dp, 3.dp).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
                 CircularProgressIndicator(Modifier.size(18.dp), color = Ok, strokeWidth = 2.dp)
                 Spacer(Modifier.width(10.dp))
-                Text(
-                    if (alert.blackBox == null) "Capturing cabin + road photos and in-cabin voice…"
-                    else "Recording in-cabin audio…",
-                    color = TextPrimary,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 14.sp,
-                )
+                Text("Capturing cabin and road photos…", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
         }
 
-        alert.blackBox?.let { bb ->
-            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Rounded.GraphicEq, null, tint = Ok, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        if (bb.audioPath != null || bb.preAudioPath != null)
-                            "In-cabin audio captured (${bb.preAudioDurationSec}s before + ${bb.audioDurationSec}s after)"
-                        else "Black box: sensor log stored",
-                        color = Muted,
-                        fontSize = 13.sp,
-                    )
-                }
-                if (bb.syncedToDevice) {
-                    Text("Black box synced to vehicle device", color = Ok, fontSize = 12.sp)
-                }
-                val photos = listOfNotNull(bb.cabinImagePath, bb.roadImagePath).size
-                if (photos > 0) {
-                    Text("$photos camera photo(s) captured (cabin + road)", color = Muted, fontSize = 13.sp)
-                }
-                if (photos > 0 || bb.audioPath != null) {
-                    Spacer(Modifier.height(4.dp))
-                    CaptureEvidence(
-                        cabinPath = bb.cabinImagePath,
-                        roadPath = bb.roadImagePath,
-                        audioPath = bb.audioPath,
-                        audioDurationSec = bb.audioDurationSec,
-                        accent = Ok,
-                        preAudioPath = bb.preAudioPath,
-                        preAudioDurationSec = bb.preAudioDurationSec,
-                    )
-                }
-            }
-        }
-
-        if (alert.dispatches.isNotEmpty()) {
-            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("EMERGENCY SMS DISPATCHED", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
-                alert.dispatches.forEach { dsp ->
-                    Column(
-                        Modifier.fillMaxWidth()
-                            .neu(16.dp, 3.dp)
-                            .padding(12.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp),
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                "${dsp.label} · ${dsp.recipient}",
-                                color = TextPrimary,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 13.sp,
-                                modifier = Modifier.weight(1f),
-                            )
-                            Text(
-                                if (dsp.sent) "SENT ✓" else "READY",
-                                color = if (dsp.sent) Ok else Muted,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
-                            )
-                        }
-                        Text(dsp.message, color = Muted, fontSize = 12.sp)
-                    }
-                }
-                Text(
-                    "Family/contacts get a real SMS over cellular (no internet needed). Police/ambulance messages are composed for the demo.",
-                    color = Muted,
-                    fontSize = 11.sp,
-                )
-            }
-        }
-
+        // 4. Calling the three contacts
         if (alert.state == CrashState.EMERGENCY_ACTIVE) {
-            AiEmergencyCall(alert)
+            CallingList()
         }
 
-        if (alert.responders.isNotEmpty()) {
-            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("WHO HAS BEEN ALERTED", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
-                alert.responders.forEach { ResponderRow(it) }
-                Text(
-                    "They received your location, vehicle and crash details by SMS. \"Seen\" means they opened it.",
-                    color = Muted,
-                    fontSize = 12.sp,
-                )
-            }
-        }
-
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Rounded.LocationOn, null, tint = Muted)
-            Spacer(Modifier.width(8.dp))
+        // 5. Readings
+        Column(Modifier.fillMaxWidth().neu(16.dp, 3.dp).padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("READINGS", color = Muted, fontSize = Label, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+            Text(bb?.sensorLog ?: "Waiting for sensor data…", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
             Text(
-                if (alert.latitude != null) formatCoords(alert.latitude, alert.longitude) else "Location sent by the vehicle device",
-                color = TextPrimary,
+                if (alert.latitude != null) formatCoords(alert.latitude, alert.longitude) else "Location from the vehicle device",
+                color = Muted,
+                fontSize = 13.sp,
             )
         }
 
-        Spacer(Modifier.height(4.dp))
-        Button(
-            onClick = onImSafe,
-            modifier = Modifier.fillMaxWidth().height(76.dp),
-            shape = androidx.compose.material3.MaterialTheme.shapes.large,
-            colors = ButtonDefaults.buttonColors(containerColor = Ok, contentColor = Color.White),
-        ) { Text("I'M SAFE", fontSize = 28.sp, fontWeight = FontWeight.Black) }
-        Text("Tapping cancels the emergency and tells every responder to stand down.", color = Muted, fontSize = 12.sp)
         TextButton(onClick = onDismiss) { Text("Hide (emergency stays active)", color = Muted) }
     }
 }
 
-/** Guardian AI placing the emergency call — simulated when no SIM, auto-dials with one. */
 @Composable
-private fun AiEmergencyCall(alert: EmergencyAlert) {
+private fun CallingList() {
     val ring by rememberInfiniteTransition(label = "ring").animateFloat(
         initialValue = 0.4f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(tween(700), RepeatMode.Reverse),
         label = "ring",
     )
-    val script = "\"Collision detected. An occupant may be injured and unresponsive. " +
-        "Requesting immediate dispatch to the location.\""
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Rounded.Call, null, tint = Critical, modifier = Modifier.size(18.dp))
-            Spacer(Modifier.width(8.dp))
-            Text(
-                "GUARDIAN AI · PLACING EMERGENCY CALL",
-                color = Critical,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.2.sp,
-            )
-        }
-        Column(
-            Modifier.fillMaxWidth()
-                .neu(16.dp, 3.dp)
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            Text("AI voice to dispatcher", color = Muted, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-            Text(script, color = TextPrimary, fontSize = 13.sp)
-        }
+        Text("CALLING", color = Critical, fontSize = Label, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
         listOf("Police" to "112", "Ambulance" to "108", "Family" to "Emergency contact").forEach { (label, number) ->
-            Row(
-                Modifier.fillMaxWidth()
-                    .neu(16.dp, 3.dp)
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text("$label · $number", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp, modifier = Modifier.weight(1f))
-                Text("CALLING", color = Critical, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.width(8.dp))
-                Box(Modifier.size(9.dp).scale(ring).background(Critical, CircleShape))
+            Row(Modifier.fillMaxWidth().neu(16.dp, 3.dp).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("$label · $number", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.weight(1f))
+                Box(Modifier.size(10.dp).scale(ring).background(Critical, CircleShape))
             }
         }
-        Text(
-            "No SIM: shown as the call that would be placed. With a SIM this auto-dials (ACTION_CALL).",
-            color = Muted,
-            fontSize = 11.sp,
-        )
     }
 }
