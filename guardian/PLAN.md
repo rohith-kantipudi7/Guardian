@@ -44,12 +44,10 @@ CRASH
 
 ## 2. IoT device = backup + full data transfer
 - [~] Define the complete black‑box bundle (AI assessment + audio + images + sensor log + GPS + time)
-- [x] Transfer the bundle **phone → IoT device** over BLE (chunked)
-- [x] IoT **buzzer** sounds on its own crash state **and** when it receives the phone's black box
-      (backup alarm for "phone destroyed")
-- [x] IoT **persists** the received bundle to flash and **queues a backup crash event** for
-      cellular delivery (idempotent by eventId, so no duplicate incident)
-- [ ] Verify end‑to‑end once the real IoT device is connected (IP: `10.239.116.232`)
+- [x] Transfer the bundle **phone → IoT device** — now over **Wi‑Fi** (`POST /blackbox`); BLE path exists too
+- [~] IoT **buzzer** — firmware ready; blocked on the hardware component
+- [x] IoT receives + exposes the bundle at `GET /blackbox` (RAM; flash persistence optional)
+- [x] Verified end‑to‑end with the real ESP32 over Wi‑Fi (device IP `192.168.137.52`)
 
 ## 3. Proper README
 - [x] Rewrite the README for the mobile‑primary architecture (phone primary, cloud AI, IoT backup,
@@ -58,8 +56,7 @@ CRASH
 ## 4. Remove the "cloud" from the app + fix the emergency‑path view
 - [x] Dropped the "cloud / Wi‑Fi" wording; the source is now just **"Guardian device"**
 - [x] Fixed the "emergency path" view: **Phone → Device → Responders** (no "cloud" node)
-- [~] Point the device client at the **real IoT** — backend/LAN set to `http://10.239.116.232:8000`
-      (change any time in Settings → Servers → Backend URL)
+- [x] Point the device client at the **real IoT** over Wi‑Fi (device web server at `192.168.137.52`)
 
 ## 5. Remove hardcoded device link
 - [x] Removed the fake connected device + hardcoded 92% battery; status is now honest (disconnected
@@ -93,9 +90,65 @@ CRASH
 - [x] Phone `CompositeReasoner` tries Cloud first, then on‑device
 - [x] Backend reads the repo‑root git‑ignored `.env` for the Azure config
 
+---
+
+## Real device integration (now live)
+- [x] App ↔ **real XIAO ESP32‑C3** over **Wi‑Fi** (not BLE): polls `GET /data`, streams live phone
+      signals to `POST /phone`, transfers the black box to `POST /blackbox`
+- [x] Dashboard rebuilt **device‑fed** (no backend, no simulator): **Live network** + **Responder
+      ops** read `/data` `/phone` `/blackbox` directly; **OpenStreetMap** incident map; SMS‑sent +
+      backup‑alert chips; operator **Acknowledge**
+- [x] **Real SMS dispatch** from the phone to emergency contacts over cellular (needs a SIM); exact
+      messages shown on the emergency screen
+- [x] **Backup alert** when the phone is offline (dashboard infers phone‑offline + new collision;
+      honours the sketch `backupAlert` flag once flashed)
+- [x] **Background mode** — foreground service (camera + mic + dataSync) keeps detection, the rolling
+      black box and streaming alive when backgrounded
+- [x] **Precise detection** — free‑fall rejection (dropped phone ≠ accident); only MODERATE+ raises
+      an accident; small jolts → abnormal‑activity warning
+- [x] **Live transfer demo** — toggle streams an evolving black‑box snapshot to the device every 3 s
+- [x] Device IP configurable (currently `192.168.137.52`)
+
+## Lined‑up next (roadmap)
+
+### 1. Install on mobile — [x] (done every build)
+
+### 2. IoT buzzer — [ ] blocked on hardware
+Waiting on the buzzer component. Firmware driver + Copilot prompt are ready; wire on arrival.
+
+### 3. Connectivity without a SIM — [~] show in UI for now
+- No SIM = no real SMS/call can go out. **Showcase in the UI**: display the SMS content (done) and a
+  simulated **call** screen ("Calling 112 / 108 / family…") from the phone and/or IoT.
+- With a SIM later: real SMS (built) + `ACTION_CALL` auto‑dial.
+
+### 4. Continuous audio processing (transcription) — [ ]
+- Add **speech‑to‑text** (Whisper): on‑device `whisper.cpp`/TFLite, or cloud Whisper when online.
+- Rolling **10‑minute** audio + photo buffer already refreshes (override old with new).
+- On crash: transcribe + analyse the **before + after** audio (both already captured) and feed the
+  transcript to the AI.
+
+### 5. Capture images when the phone is disconnected — [ ]
+- Buffer the latest cabin/road frames on the phone and hand them to the IoT **before** loss; the
+  ESP32 has no camera, so the black box keeps the **last transferred frames**.
+
+### 6. Transfer actual images + audio (not just JSON) — [ ]
+- Show the **media** moving phone → IoT. ESP32‑C3 can't store media (no SD), so route media to where
+  the dashboard can show it (phone‑served or backend) and **visualise the transfer**.
+
+### 7. Multi‑transport: BLE + Wi‑Fi + SIM — [~]
+- **Wi‑Fi**: done. **BLE**: client exists, needs wiring to the sketch's GATT. **SIM**: none to test.
+- IP‑range hardcoding is not ideal but **kept** for now (configurable default in Settings).
+
+### 8. In‑depth web UI — [~]
+- Richer showcase: per‑incident detail, live‑transfer timeline, media gallery, dispatch log, bigger map.
+
+### Housekeeping
+- [x] Removed the two Copilot meta files (`GUARDIAN_COPILOT_BUILD_SPEC.md`, `.github/copilot-instructions.md`)
+
 ## Needed from you
-- [ ] Confirm `10.239.116.232` is reachable from the phone (same Wi‑Fi/LAN) and whether it serves
-      **http** (used now) or **https** (would need a trusted cert on Android)
+- [ ] **SIM card** for real SMS/calls (currently showcased in the UI only)
+- [ ] **Buzzer component** for the IoT alarm
+- [ ] Decide **Whisper** target: on‑device (offline, heavy) vs cloud (needs internet)
 - [ ] **Rotate the Azure keys** in `.env` — they were exposed in chat and must be regenerated
 
 ## Already in place (starting point)
