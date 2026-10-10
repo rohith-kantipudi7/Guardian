@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="a" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="#37474f"/></marker>
+    <style>
+      .t{font-size:20px;font-weight:700;fill:#263238}
+      .h{font-size:15px;font-weight:700;fill:#263238}
+      .s{font-size:12.5px;fill:#455a64}
+      .l{font-size:12px;fill:#37474f;font-style:italic}
+      .zone{fill:#f5f7fa;stroke:#90a4ae;stroke-width:1.5;stroke-dasharray:6 4}
+      .ok{fill:#d8f5d8;stroke:#2e7d32;stroke-width:1.5}
+      .un{fill:#fff3cd;stroke:#b58900;stroke-width:1.5}
+      .bl{fill:#f8d7da;stroke:#b02a37;stroke-width:1.5}
+      .w{stroke:#37474f;stroke-width:2;fill:none;marker-end:url(#a)}
+      .d{stroke:#37474f;stroke-width:1.6;fill:none;stroke-dasharray:6 4;marker-end:url(#a)}
+    </style>
+  </defs>
+  <rect width="1200" height="760" fill="#ffffff"/>
+  <text x="30" y="36" class="t">Guardian - system architecture (hotspot demo)</text>
+  <text x="30" y="56" class="s">Laptop hotspot is the single network: phone, ESP32 and laptop all join it.</text>
+
+  <rect x="20" y="75" width="300" height="540" rx="12" class="zone"/>
+  <text x="36" y="98" class="h">VEHICLE</text>
+  <rect x="340" y="75" width="400" height="540" rx="12" class="zone"/>
+  <text x="356" y="98" class="h">DRIVER'S ANDROID PHONE (hotspot host)</text>
+  <rect x="760" y="75" width="420" height="540" rx="12" class="zone"/>
+  <text x="776" y="98" class="h">LAPTOP (demo host)</text>
+
+  <!-- vehicle -->
+  <rect x="40" y="120" width="260" height="210" rx="10" class="un"/>
+  <text x="56" y="146" class="h">XIAO ESP32-C3 black box</text>
+  <text x="56" y="170" class="s">IMU impact detection</text>
+  <text x="56" y="188" class="s">RAM blackbox store</text>
+  <text x="56" y="206" class="s">Wi-Fi HTTP: /data /phone /blackbox</text>
+  <text x="56" y="224" class="s">BLE GATT: chunked BLACKBOX (0x04 end)</text>
+  <text x="56" y="250" class="s">Buzzer: not fitted</text>
+  <text x="56" y="316" class="l">built, not tested end to end</text>
+
+  <!-- phone -->
+  <rect x="360" y="120" width="360" height="90" rx="10" class="un"/>
+  <text x="376" y="146" class="h">GuardianViewModel</text>
+  <text x="376" y="168" class="s">crash flow, 10-minute checkpoint loop</text>
+  <text x="376" y="186" class="s">imSafe reset, crashStored guard</text>
+
+  <rect x="360" y="230" width="360" height="90" rx="10" class="ok"/>
+  <text x="376" y="256" class="h">Capture</text>
+  <text x="376" y="278" class="s">cabin + road JPEG, m4a audio</text>
+  <text x="376" y="296" class="s">whisper.cpp transcript, 64px thumbnails</text>
+
+  <rect x="360" y="340" width="360" height="70" rx="10" class="un"/>
+  <text x="376" y="366" class="h">SwitchableDeviceClient</text>
+  <text x="376" y="388" class="s">Wi-Fi first, BLE fallback</text>
+
+  <rect x="360" y="430" width="360" height="80" rx="10" class="ok"/>
+  <text x="376" y="456" class="h">MediaServer :8080</text>
+  <text x="376" y="478" class="s">latest JPEGs, pre/after m4a (CORS *, no-store)</text>
+
+  <rect x="360" y="530" width="360" height="65" rx="10" class="bl"/>
+  <text x="376" y="556" class="h">SMS / call dispatch</text>
+  <text x="376" y="576" class="s">needs a SIM - blocked</text>
+
+  <!-- laptop -->
+  <rect x="780" y="120" width="380" height="120" rx="10" class="ok"/>
+  <text x="796" y="146" class="h">Dashboard (Vite/React) :5174</text>
+  <text x="796" y="168" class="s">Live device, Responder ops, map, timeline</text>
+  <text x="796" y="186" class="s">useCollision: only real device events</text>
+  <text x="796" y="204" class="s">polls ESP32 via VITE_DEVICE_URL</text>
+
+  <rect x="780" y="270" width="380" height="110" rx="10" class="ok"/>
+  <text x="796" y="296" class="h">guardian-api (FastAPI)</text>
+  <text x="796" y="318" class="s">devices, users, crashes, alerts</text>
+  <text x="796" y="336" class="s">realtime channel + database</text>
+
+  <rect x="780" y="410" width="380" height="70" rx="10" class="ok"/>
+  <text x="796" y="436" class="h">Vehicle simulator (Python)</text>
+  <text x="796" y="456" class="s">test and demo traffic</text>
+
+  <rect x="780" y="510" width="380" height="85" rx="10" class="bl"/>
+  <text x="796" y="536" class="h">Azure AI</text>
+  <text x="796" y="556" class="s">vision on image bytes not built</text>
+  <text x="796" y="574" class="s">keys in .env need rotating</text>
+
+  <!-- arrows -->
+  <path class="w" d="M300,200 C330,200 335,165 360,165"/>
+  <text x="302" y="190" class="l">events</text>
+  <path class="d" d="M300,290 C330,300 335,370 360,370"/>
+  <text x="302" y="318" class="l">BLE</text>
+  <path class="w" d="M360,380 C335,380 330,260 300,260"/>
+  <text x="318" y="270" class="l">blackbox</text>
+  <path class="w" d="M540,210 L540,230"/>
+  <path class="w" d="M540,320 L540,340"/>
+  <path class="w" d="M440,320 C400,380 400,400 420,430"/>
+  <path class="w" d="M720,160 L780,310"/>
+  <text x="722" y="228" class="l">crash report</text>
+  <path class="w" d="M970,270 L970,240"/>
+  <text x="975" y="258" class="l">alerts</text>
+  <path class="w" d="M780,450 L760,450 L760,330 L780,330" />
+  <path class="d" d="M970,510 L970,380"/>
+  <path class="w" d="M780,215 L300,215"/>
+  <text x="520" y="640" class="l">dashboard polls /data and /blackbox on the ESP32 and fetches full-resolution media from :8080</text>
+  <path class="w" d="M780,225 C740,470 740,470 720,470"/>
+
+  <!-- legend -->
+  <rect x="30" y="680" width="22" height="16" class="ok"/><text x="60" y="693" class="s">built and exercised</text>
+  <rect x="230" y="680" width="22" height="16" class="un"/><text x="260" y="693" class="s">built, not verified on hardware</text>
+  <rect x="470" y="680" width="22" height="16" class="bl"/><text x="500" y="693" class="s">blocked / not built</text>
+  <text x="30" y="725" class="s">Every 10 min: audio + photos checkpoint to ESP32. After a crash: remaining data transferred (Wi-Fi, else BLE).</text>
+</svg>
