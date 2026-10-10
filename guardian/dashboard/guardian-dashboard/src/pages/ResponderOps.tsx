@@ -19,17 +19,29 @@ import FamilyRestroomOutlined from '@mui/icons-material/FamilyRestroomOutlined';
 import WarningAmberOutlined from '@mui/icons-material/WarningAmberOutlined';
 import ShieldOutlined from '@mui/icons-material/ShieldOutlined';
 import SmartphoneOutlined from '@mui/icons-material/SmartphoneOutlined';
+import SmsOutlined from '@mui/icons-material/SmsOutlined';
 import type { ReactNode } from 'react';
 import { KpiCard } from '../components/KpiCard';
+import { MapView, type MapMarker } from '../components/map/MapView';
 import { config } from '../config';
 import { useBackupAlert } from '../hooks/useBackupAlert';
 import { useBlackBox, useDeviceData, usePhoneData } from '../services/device';
+import type { Severity } from '../types';
 
 function severityColor(sev?: string): 'error' | 'warning' | 'info' | 'default' {
   if (sev === 'CRITICAL') return 'error';
   if (sev === 'MODERATE') return 'warning';
   if (sev === 'MINOR') return 'info';
   return 'default';
+}
+
+function parseCoords(location?: string): { lat: number; lon: number } | null {
+  const parts = location?.split(',');
+  if (parts?.length !== 2) return null;
+  const lat = Number(parts[0]);
+  const lon = Number(parts[1]);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || (lat === 0 && lon === 0)) return null;
+  return { lat, lon };
 }
 
 function Responder({
@@ -74,6 +86,19 @@ export function ResponderOps() {
   const phoneOnline = !!p?.phoneOnline;
   const [alert, ackAlert] = useBackupAlert(d, p);
   const active = alert.active || p?.state === 'EMERGENCY' || !!bb?.eventId;
+  const coords = parseCoords(bb?.location);
+  const markers: MapMarker[] = coords
+    ? [
+        {
+          id: bb?.eventId ?? 'incident',
+          latitude: coords.lat,
+          longitude: coords.lon,
+          label: `${bb?.severity ?? 'Incident'} crash`,
+          severity: bb?.severity as Severity | undefined,
+        },
+      ]
+    : [];
+  const smsSent = bb?.smsSent ?? 0;
 
   return (
     <Stack spacing={3}>
@@ -167,12 +192,39 @@ export function ResponderOps() {
               <Responder name="Ambulance" contact="108" icon={<LocalHospitalOutlined />} active={active} />
               <Responder name="Family" contact="Emergency contacts" icon={<FamilyRestroomOutlined />} active={active} />
             </Stack>
+            <Stack direction="row" spacing={1} sx={{ mt: 1.5, flexWrap: 'wrap' }}>
+              <Chip
+                size="small"
+                icon={<SmsOutlined />}
+                label={`SMS sent to ${smsSent} contact(s)`}
+                color={smsSent > 0 ? 'success' : 'default'}
+                variant="outlined"
+              />
+              {alert.active && <Chip size="small" color="error" label="Backup alert dispatched" />}
+            </Stack>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
               Delivery to responders needs the Guardian server + internet; on this hotspot it shows the escalation state.
             </Typography>
           </CardContent>
         </Card>
       </Box>
+
+      <Card>
+        <CardContent>
+          <Typography variant="overline" color="text.secondary">
+            Incident location (OpenStreetMap)
+          </Typography>
+          {coords ? (
+            <Box sx={{ mt: 1 }}>
+              <MapView markers={markers} height={320} />
+            </Box>
+          ) : (
+            <Typography color="text.secondary" sx={{ mt: 1 }}>
+              No location yet — a crash with the phone's last‑known GPS will plot here.
+            </Typography>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent>

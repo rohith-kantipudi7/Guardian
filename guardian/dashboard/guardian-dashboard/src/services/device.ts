@@ -35,6 +35,8 @@ export interface BlackBox {
   preAudioSec?: number;
   images?: number;
   assessment?: string;
+  location?: string; // "lat,lon"
+  smsSent?: number;
 }
 
 async function getJson<T>(url: string, signal?: AbortSignal): Promise<T> {

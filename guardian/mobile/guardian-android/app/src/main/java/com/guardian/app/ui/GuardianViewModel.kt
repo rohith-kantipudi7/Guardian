@@ -347,7 +347,8 @@ class GuardianViewModel(
             // Mint a local id if the phone never got a backend/device one, so it's never empty.
             val eventId = _alert.value?.eventId
                 ?: "PH-${settingsStore.settings.value.deviceId}-${System.currentTimeMillis()}"
-            val json = bundle.toTransferJson(eventId, r.severity.name, r.confidence)
+            val smsSent = _alert.value?.dispatches?.count { it.sent } ?: 0
+            val json = bundle.toTransferJson(eventId, r.severity.name, r.confidence, phoneLocation.lastKnown(), smsSent)
             if (device.sendBlackBox(json)) {
                 _alert.value = _alert.value?.copy(blackBox = bundle.copy(syncedToDevice = true))
             }
