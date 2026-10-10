@@ -116,9 +116,9 @@ function BlackBox({ incident: c }: { incident: CrashEvent }) {
           sx={{
             p: 1.5,
             borderRadius: 1,
-            bgcolor: 'rgba(37,99,235,.08)',
+            bgcolor: 'rgba(109,74,224,.08)',
             border: '1px solid',
-            borderColor: 'rgba(37,99,235,.3)',
+            borderColor: 'rgba(109,74,224,.3)',
           }}
         >
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>

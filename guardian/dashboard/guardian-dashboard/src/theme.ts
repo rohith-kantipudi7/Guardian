@@ -1,23 +1,23 @@
 import { alpha, createTheme } from '@mui/material/styles';
 
-// Claymorphism: white surfaces on a light grey page, puffy corners, soft drop shadow plus inner highlight.
-const bg = '#EEF0F4';
+// Claymorphism: white surfaces on a soft lavender page, puffy corners, soft drop shadow plus inner highlight.
+const bg = '#EAE6F7';
 const paper = '#FFFFFF';
 const raised = '#FFFFFF';
-const line = '#DDE1E8';
-const shadowDark = '#C5CBD6';
+const line = '#D9D3EE';
+const shadowDark = '#B9B0DC';
 
-const primary = '#2563EB';
-const slate = '#52617A';
+const primary = '#6D4AE0';
+const slate = '#8B6FF0';
 const danger = '#D92D4A';
 const amber = '#B7791F';
 const green = '#1E8E4E';
 
 export const neu = {
-  raised: '0 14px 28px rgba(31,41,55,.12), 0 3px 6px rgba(31,41,55,.06), inset 0 -6px 10px rgba(31,41,55,.06), inset 0 6px 10px rgba(255,255,255,.95)',
-  raisedSm: '0 6px 14px rgba(31,41,55,.12), inset 0 -3px 6px rgba(31,41,55,.06), inset 0 3px 6px rgba(255,255,255,.95)',
-  inset: 'inset 3px 4px 8px rgba(31,41,55,.12), inset -3px -3px 6px rgba(255,255,255,.9)',
-  insetSm: 'inset 2px 3px 5px rgba(31,41,55,.12), inset -2px -2px 4px rgba(255,255,255,.9)',
+  raised: '0 14px 28px rgba(70,58,140,.12), 0 3px 6px rgba(70,58,140,.06), inset 0 -6px 10px rgba(70,58,140,.06), inset 0 6px 10px rgba(255,255,255,.95)',
+  raisedSm: '0 6px 14px rgba(70,58,140,.12), inset 0 -3px 6px rgba(70,58,140,.06), inset 0 3px 6px rgba(255,255,255,.95)',
+  inset: 'inset 3px 4px 8px rgba(70,58,140,.12), inset -3px -3px 6px rgba(255,255,255,.9)',
+  insetSm: 'inset 2px 3px 5px rgba(70,58,140,.12), inset -2px -2px 4px rgba(255,255,255,.9)',
 };
 
 export const theme = createTheme({
@@ -31,7 +31,7 @@ export const theme = createTheme({
     info: { main: primary },
     background: { default: bg, paper },
     divider: line,
-    text: { primary: '#1F2937', secondary: '#4B5870', disabled: '#8793A8' },
+    text: { primary: '#241F3A', secondary: '#5E5A7A', disabled: '#8793A8' },
   },
   typography: {
     fontFamily: 'Inter, "Segoe UI", Roboto, system-ui, sans-serif',
@@ -93,7 +93,7 @@ export const theme = createTheme({
           borderRadius: 14,
           paddingInline: 18,
           backgroundColor: paper,
-          color: '#1F2937',
+          color: '#241F3A',
           boxShadow: neu.raisedSm,
           border: 'none',
           '&:hover': { backgroundColor: paper, boxShadow: neu.raised },
@@ -109,7 +109,7 @@ export const theme = createTheme({
     MuiTableCell: {
       styleOverrides: {
         root: { borderColor: line },
-        head: { color: '#4B5870', fontWeight: 800, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.8 },
+        head: { color: '#5E5A7A', fontWeight: 800, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.8 },
       },
     },
     MuiAlert: { styleOverrides: { root: { borderRadius: 12 } } },
@@ -127,7 +127,7 @@ export const theme = createTheme({
     MuiDivider: { styleOverrides: { root: { borderColor: alpha(shadowDark, 0.6) } } },
     MuiAvatar: { styleOverrides: { root: { boxShadow: neu.raisedSm } } },
     MuiTooltip: {
-      styleOverrides: { tooltip: { fontSize: 13, backgroundColor: '#1F2937', color: '#F8FAFC' } },
+      styleOverrides: { tooltip: { fontSize: 13, backgroundColor: '#241F3A', color: '#F8FAFC' } },
     },
     MuiLinearProgress: {
       styleOverrides: { root: { borderRadius: 6, backgroundColor: raised, height: 8, boxShadow: neu.insetSm } },

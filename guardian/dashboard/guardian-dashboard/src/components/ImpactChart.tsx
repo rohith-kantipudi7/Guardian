@@ -42,12 +42,12 @@ export function ImpactChart({ trace }: { trace: TracePoint[] }) {
         <text x={W - PAD.r - 4} y={yG(IMPACT_THRESHOLD_G) - 4} fill="#B7791F" fontSize="11" textAnchor="end">
           impact trigger {IMPACT_THRESHOLD_G} g
         </text>
-        <path d={path((p) => p[2], yR)} fill="none" stroke="#52617A" strokeWidth="1.5" opacity={0.85} />
+        <path d={path((p) => p[2], yR)} fill="none" stroke="#8B6FF0" strokeWidth="1.5" opacity={0.85} />
         <path d={path((p) => p[1], yG)} fill="none" stroke="#D92D4A" strokeWidth="2" />
         <text x={4} y={PAD.t + 10} fill="#D92D4A" fontSize="11">
           {gMax.toFixed(0)} g
         </text>
-        <text x={W - 4} y={PAD.t + 10} fill="#52617A" fontSize="11" textAnchor="end">
+        <text x={W - 4} y={PAD.t + 10} fill="#8B6FF0" fontSize="11" textAnchor="end">
           {rMax.toFixed(0)} rad/s
         </text>
         <text x={PAD.l} y={H - 4} fill="#4B5870" fontSize="11">
@@ -61,7 +61,7 @@ export function ImpactChart({ trace }: { trace: TracePoint[] }) {
         <Typography variant="caption" sx={{ color: '#D92D4A' }}>
           ━ acceleration (g)
         </Typography>
-        <Typography variant="caption" sx={{ color: '#52617A' }}>
+        <Typography variant="caption" sx={{ color: '#8B6FF0' }}>
           ━ rotation (rad/s)
         </Typography>
       </Stack>
