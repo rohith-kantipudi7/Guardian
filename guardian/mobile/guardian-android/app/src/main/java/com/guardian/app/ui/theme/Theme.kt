@@ -14,7 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// Neumorphic light palette, matched to the web dashboard.
+// Claymorphism palette (white surfaces on light grey), matched to the web dashboard.
 val Ok = Color(0xFF1E8E4E)
 val Bad = Color(0xFFD92D4A)
 val Warn = Color(0xFFB7791F)
@@ -23,10 +23,10 @@ val Info = Color(0xFF2563EB)
 val Violet = Color(0xFF52617A)
 val Muted = Color(0xFF5B6B82)
 
-val Bg = Color(0xFFE4E9F0)
-val Surface1 = Bg
-val Surface2 = Bg
-val Line = Color(0xFFCBD3DF)
+val Bg = Color(0xFFEEF0F4)
+val Surface1 = Color.White
+val Surface2 = Color.White
+val Line = Color(0xFFDDE1E8)
 val ShadowDark = Color(0xFFB8C1D0)
 val ShadowLight = Color(0xFFFFFFFF)
 val TextPrimary = Color(0xFF1F2937)
@@ -46,12 +46,12 @@ private val Scheme = lightColorScheme(
     onError = Color.White,
     background = Bg,
     onBackground = TextPrimary,
-    surface = Bg,
+    surface = Color.White,
     onSurface = TextPrimary,
-    surfaceVariant = Bg,
+    surfaceVariant = Color.White,
     onSurfaceVariant = Muted,
-    surfaceContainer = Bg,
-    surfaceContainerHigh = Bg,
+    surfaceContainer = Color.White,
+    surfaceContainerHigh = Color.White,
     outline = Line,
     outlineVariant = Line,
 )
@@ -69,9 +69,9 @@ private val Type = Typography(
 )
 
 private val Shape = Shapes(
-    small = RoundedCornerShape(12.dp),
-    medium = RoundedCornerShape(16.dp),
-    large = RoundedCornerShape(20.dp),
+    small = RoundedCornerShape(14.dp),
+    medium = RoundedCornerShape(20.dp),
+    large = RoundedCornerShape(28.dp),
 )
 
 @Composable

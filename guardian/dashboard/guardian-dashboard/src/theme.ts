@@ -1,12 +1,11 @@
 import { alpha, createTheme } from '@mui/material/styles';
 
-// Neumorphic light theme: one soft base colour, depth comes from paired light/dark shadows.
-const bg = '#E4E9F0';
-const paper = '#E4E9F0';
-const raised = '#E4E9F0';
-const line = '#CBD3DF';
-const shadowDark = '#B8C1D0';
-const shadowLight = '#FFFFFF';
+// Claymorphism: white surfaces on a light grey page, puffy corners, soft drop shadow plus inner highlight.
+const bg = '#EEF0F4';
+const paper = '#FFFFFF';
+const raised = '#FFFFFF';
+const line = '#DDE1E8';
+const shadowDark = '#C5CBD6';
 
 const primary = '#2563EB';
 const slate = '#52617A';
@@ -15,10 +14,10 @@ const amber = '#B7791F';
 const green = '#1E8E4E';
 
 export const neu = {
-  raised: `6px 6px 14px ${shadowDark}, -6px -6px 14px ${shadowLight}`,
-  raisedSm: `3px 3px 8px ${shadowDark}, -3px -3px 8px ${shadowLight}`,
-  inset: `inset 3px 3px 7px ${shadowDark}, inset -3px -3px 7px ${shadowLight}`,
-  insetSm: `inset 2px 2px 4px ${shadowDark}, inset -2px -2px 4px ${shadowLight}`,
+  raised: '0 14px 28px rgba(31,41,55,.12), 0 3px 6px rgba(31,41,55,.06), inset 0 -6px 10px rgba(31,41,55,.06), inset 0 6px 10px rgba(255,255,255,.95)',
+  raisedSm: '0 6px 14px rgba(31,41,55,.12), inset 0 -3px 6px rgba(31,41,55,.06), inset 0 3px 6px rgba(255,255,255,.95)',
+  inset: 'inset 3px 4px 8px rgba(31,41,55,.12), inset -3px -3px 6px rgba(255,255,255,.9)',
+  insetSm: 'inset 2px 3px 5px rgba(31,41,55,.12), inset -2px -2px 4px rgba(255,255,255,.9)',
 };
 
 export const theme = createTheme({
@@ -72,7 +71,7 @@ export const theme = createTheme({
           backgroundColor: paper,
           backgroundImage: 'none',
           border: 'none',
-          borderRadius: 16,
+          borderRadius: 24,
           boxShadow: neu.raised,
         },
       },
@@ -82,7 +81,7 @@ export const theme = createTheme({
     },
     MuiChip: {
       styleOverrides: {
-        root: { fontWeight: 700, borderRadius: 8, boxShadow: neu.insetSm },
+        root: { fontWeight: 700, borderRadius: 10, boxShadow: neu.insetSm },
         sizeSmall: { height: 22 },
         outlined: { borderWidth: 0 },
       },
@@ -91,13 +90,13 @@ export const theme = createTheme({
       defaultProps: { disableElevation: true },
       styleOverrides: {
         root: {
-          borderRadius: 10,
-          paddingInline: 16,
-          backgroundColor: bg,
+          borderRadius: 14,
+          paddingInline: 18,
+          backgroundColor: paper,
           color: '#1F2937',
           boxShadow: neu.raisedSm,
           border: 'none',
-          '&:hover': { backgroundColor: bg, boxShadow: neu.raised },
+          '&:hover': { backgroundColor: paper, boxShadow: neu.raised },
           '&:active': { boxShadow: neu.insetSm },
         },
       },
