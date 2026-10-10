@@ -27,7 +27,7 @@ data class AppSettings(
     val backendUrl: String = BuildConfig.DEFAULT_BACKEND_URL,
     val virtualDeviceUrl: String = defaultVirtualUrl(BuildConfig.DEFAULT_BACKEND_URL),
     val deviceId: String = "GD-001",
-    val deviceIp: String = "10.239.116.232",
+    val deviceIp: String = "192.168.137.61",
     val vehicleName: String = "My Vehicle",
     val vehicleRegistration: String = "KA01GD0001",
     val deviceSource: DeviceSource = DeviceSource.NONE,
