@@ -80,11 +80,31 @@ function ImpactRow({ ok, icon, label }: Readonly<{ ok: boolean; icon: ReactNode;
   );
 }
 
+/** Real captured photo served by the phone; hides itself if the phone is unreachable. */
+function MediaPhoto({ src, label }: Readonly<{ src: string; label: string }>) {
+  return (
+    <Box sx={{ flex: 1, minWidth: 0 }}>
+      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{label}</Typography>
+      <Box
+        component="img"
+        src={src}
+        alt={label}
+        onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden'; }}
+        onLoad={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'visible'; }}
+        sx={{ width: '100%', maxHeight: 180, objectFit: 'cover', borderRadius: 1, bgcolor: 'action.hover' }}
+      />
+    </Box>
+  );
+}
+
 /** Visualises the always-on black box: continuous capture streaming, impact artifacts on crash. */
 export function TransferVisual({ bb, live }: Readonly<{ bb?: BlackBox; live: boolean }>) {
   // A real crash record (vs the "MONITORING" live snapshot the phone streams continuously).
   const crash = !!bb && (bb.severity ?? '').toUpperCase() !== 'MONITORING' && bb.eventId !== 'LIVE';
   const frames = bb?.frames ?? 0;
+  const media = bb?.media ? bb.media.replace(/\/$/, '') : '';
+  // Cache-bust per frame/event so the newest photo loads.
+  const bust = `${frames}-${bb?.eventId ?? ''}`;
 
   const impact = [
     { ok: (bb?.audioSec ?? 0) > 0, icon: <GraphicEqOutlined fontSize="small" />, label: `After‑impact audio (${bb?.audioSec ?? 0}s)` },
@@ -145,6 +165,13 @@ export function TransferVisual({ bb, live }: Readonly<{ bb?: BlackBox; live: boo
           {frames} frames buffered · streaming to the device’s black box.
         </Typography>
 
+        {media && (bb?.images ?? 0) > 0 && (
+          <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+            <MediaPhoto src={`${media}/cabin.jpg?v=${bust}`} label="Cabin (latest)" />
+            <MediaPhoto src={`${media}/road.jpg?v=${bust}`} label="Road (latest)" />
+          </Stack>
+        )}
+
         <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700, display: 'block', mt: 2, mb: 0.75 }}>
           ON IMPACT · captured &amp; transferred when a crash is detected
         </Typography>
@@ -156,6 +183,15 @@ export function TransferVisual({ bb, live }: Readonly<{ bb?: BlackBox; live: boo
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
           {crash ? `${done}/${impact.length} impact artifacts transferred.` : 'Waiting for impact — these load only when a crash is detected.'}
         </Typography>
+
+        {crash && media && (bb?.audioSec ?? 0) > 0 && (
+          <Box sx={{ mt: 1.5 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontWeight: 700 }}>
+              After‑impact audio (real clip from the phone)
+            </Typography>
+            <audio controls preload="none" src={`${media}/after.m4a?v=${bb?.eventId ?? ''}`} style={{ width: '100%' }} />
+          </Box>
+        )}
 
         {bb?.transcript && (
           <Box sx={{ mt: 1.5, p: 1.25, bgcolor: 'action.hover', borderRadius: 1 }}>

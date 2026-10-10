@@ -11,6 +11,7 @@ import com.guardian.app.data.ai.LlmModelManager
 import com.guardian.app.data.ai.OnDeviceAi
 import com.guardian.app.data.ai.WhisperCppTranscriber
 import com.guardian.app.data.ai.WhisperTranscriber
+import com.guardian.app.data.media.MediaServer
 import com.guardian.app.data.alert.PhoneLocation
 import com.guardian.app.data.alert.SmsDispatcher
 import com.guardian.app.data.ble.BleGuardianDeviceClient
@@ -76,6 +77,8 @@ class AppContainer(app: Application) {
     val dualCameraCapture = DualCameraCapture(app)
     // Always-on vehicle black box: buffers recent cabin/road frames so a crash has images instantly.
     val continuousBlackBox = ContinuousBlackBox(app, dualCameraCapture).also { it.start(scope) }
+    // Serves the REAL captured photos/audio to the dashboard (the ESP32 can't store media).
+    val mediaServer = MediaServer().also { it.start(scope) }
 }
 
 class GuardianApp : Application() {

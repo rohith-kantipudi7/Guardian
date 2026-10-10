@@ -138,9 +138,9 @@ Waiting on the buzzer component. Firmware driver + Copilot prompt are ready; wir
 - Buffer the latest cabin/road frames on the phone and hand them to the IoT **before** loss; the
   ESP32 has no camera, so the black box keeps the **last transferred frames**.
 
-### 6. Transfer actual images + audio (not just JSON) — [ ]
-- Show the **media** moving phone → IoT. ESP32‑C3 can't store media (no SD), so route media to where
-  the dashboard can show it (phone‑served or backend) and **visualise the transfer**.
+### 6. Transfer actual images + audio (not just JSON) — [x]
+- Phone hosts the real media (port 8080: latest cabin/road JPEGs, after‑impact m4a); the dashboard
+  loads it via the `media` URL carried in the black‑box JSON (live stills always, audio after a crash).
 
 ### 7. Multi‑transport: BLE + Wi‑Fi + SIM — [~]
 - **Wi‑Fi**: done. **BLE**: client exists, needs wiring to the sketch's GATT. **SIM**: none to test.

@@ -35,6 +35,7 @@ export interface BlackBox {
   preAudioSec?: number;
   images?: number;
   frames?: number;
+  media?: string; // phone-hosted media server base URL
   assessment?: string;
   location?: string; // "lat,lon"
   smsSent?: number;
