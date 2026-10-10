@@ -107,7 +107,7 @@ export function LiveDevice() {
           <Stack direction="row" spacing={1} sx={{ mt: 1.5, alignItems: 'center', justifyContent: 'center' }}>
             <Node label="Phone" sub="Primary" online={phoneOnline} icon={<SmartphoneOutlined />} />
             <Link ok={phoneOnline && deviceOnline} />
-            <Node label="Guardian device" sub="Backup" online={deviceOnline} icon={<RouterOutlined />} />
+            <Node label="Black box" sub="IoT device" online={deviceOnline} icon={<RouterOutlined />} />
             <Link ok={backupAlert} />
             <Node
               label="Responders"
@@ -157,7 +157,7 @@ export function LiveDevice() {
         <Card>
           <CardContent>
             <Typography variant="overline" color="text.secondary">
-              This device (ESP32 + IMU)
+              Black box (ESP32 + IMU)
             </Typography>
             <Stack direction="row" spacing={4} sx={{ mt: 1 }}>
               <Stat label="Acceleration" value={`${(d?.accel ?? 0).toFixed(2)} g`} />
@@ -184,7 +184,7 @@ export function LiveDevice() {
       <Card>
         <CardContent>
           <Typography variant="overline" color="text.secondary">
-            Last black box (streamed from the phone)
+            Contents transferred to the black box
           </Typography>
           {bb?.eventId ? (
             <Stack spacing={1} sx={{ mt: 1 }}>

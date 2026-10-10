@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 export interface DeviceEvent {
   n: number;
@@ -48,8 +48,11 @@ export function useDeviceData(baseUrl: string) {
   return useQuery({
     queryKey: ['device-data', baseUrl],
     queryFn: ({ signal }) => getJson<DeviceData>(`${baseUrl}/data`, signal),
-    refetchInterval: 1000,
+    refetchInterval: 2000,
     retry: false,
+    // The single-threaded board sometimes starves a request; keep the last good value so the UI
+    // doesn't flicker to "offline" on a transient timeout.
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -58,8 +61,9 @@ export function usePhoneData(baseUrl: string) {
   return useQuery({
     queryKey: ['device-phone', baseUrl],
     queryFn: ({ signal }) => getJson<PhoneData>(`${baseUrl}/phone`, signal),
-    refetchInterval: 1000,
+    refetchInterval: 2000,
     retry: false,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -68,7 +72,8 @@ export function useBlackBox(baseUrl: string) {
   return useQuery({
     queryKey: ['device-blackbox', baseUrl],
     queryFn: ({ signal }) => getJson<BlackBox>(`${baseUrl}/blackbox`, signal),
-    refetchInterval: 2000,
+    refetchInterval: 3000,
     retry: false,
+    placeholderData: keepPreviousData,
   });
 }
