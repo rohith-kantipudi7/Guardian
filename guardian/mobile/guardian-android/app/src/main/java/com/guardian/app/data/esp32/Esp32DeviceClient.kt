@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -54,9 +56,13 @@ class Esp32DeviceClient(
     override val events: SharedFlow<CrashEventRecord> = _events
 
     private val http = OkHttpClient.Builder()
-        .connectTimeout(3, TimeUnit.SECONDS)
-        .callTimeout(5, TimeUnit.SECONDS)
+        .connectTimeout(6, TimeUnit.SECONDS)
+        .callTimeout(8, TimeUnit.SECONDS)
         .build()
+
+    // The ESP32 web server handles one request at a time; serialise so we never open parallel
+    // connections (concurrent /data + /phone + /blackbox would make the board time out).
+    private val httpMutex = Mutex()
 
     private var poller: Job? = null
     private var lastCount = -1
@@ -83,39 +89,42 @@ class Esp32DeviceClient(
     }
 
     private suspend fun poll() = withContext(Dispatchers.IO) {
-        try {
-            val req = Request.Builder().url("${base()}/data").get().build()
-            http.newCall(req).execute().use { resp ->
-                val body = resp.body?.string()
-                if (!resp.isSuccessful || body == null) {
-                    markOffline()
-                    return@withContext
-                }
-                val json = JSONObject(body)
-                val count = json.optInt("count", 0)
-                val accel = json.optDouble("accel", 1.0)
-                val gyro = json.optDouble("gyro", 0.0)
-                Log.i("Esp32", "GET ${base()}/data -> 200 count=$count accel=$accel")
-                _link.value = LinkState.CONNECTED
-                _status.value = DeviceStatus(
-                    deviceId = deviceId(),
-                    vehicleId = "",
-                    firmware = "esp32-c3",
-                    battery = null,
-                    gps = "UNAVAILABLE",
-                    cellular = "CONNECTED", // reachable over Wi-Fi
-                    vehicleConnected = true,
-                    crashState = _crash.value?.state ?: CrashState.NORMAL,
-                    pendingEvents = 0,
-                    lastUpdateMs = System.currentTimeMillis(),
-                )
-                // A new collision counted by the device = a backup crash it detected itself.
-                if (lastCount in 0 until count) onDeviceCollision(count, latestEvent(json, accel, gyro))
-                lastCount = count
+        val body = try {
+            httpMutex.withLock {
+                val req = Request.Builder().url("${base()}/data").get().build()
+                http.newCall(req).execute().use { resp -> if (resp.isSuccessful) resp.body?.string() else null }
             }
         } catch (e: Exception) {
             Log.w("Esp32", "GET ${base()}/data FAILED: ${e.message}")
+            null
+        }
+        if (body == null) {
             markOffline()
+            return@withContext
+        }
+        try {
+            val json = JSONObject(body)
+            val count = json.optInt("count", 0)
+            val accel = json.optDouble("accel", 1.0)
+            val gyro = json.optDouble("gyro", 0.0)
+            _link.value = LinkState.CONNECTED
+            _status.value = DeviceStatus(
+                deviceId = deviceId(),
+                vehicleId = "",
+                firmware = "esp32-c3",
+                battery = null,
+                gps = "UNAVAILABLE",
+                cellular = "CONNECTED", // reachable over Wi-Fi
+                vehicleConnected = true,
+                crashState = _crash.value?.state ?: CrashState.NORMAL,
+                pendingEvents = 0,
+                lastUpdateMs = System.currentTimeMillis(),
+            )
+            // A new collision counted by the device = a backup crash it detected itself.
+            if (lastCount in 0 until count) onDeviceCollision(count, latestEvent(json, accel, gyro))
+            lastCount = count
+        } catch (e: Exception) {
+            Log.w("Esp32", "parse /data failed: ${e.message}")
         }
     }
 
@@ -167,13 +176,15 @@ class Esp32DeviceClient(
     private suspend fun post(path: String, json: String): Boolean = withContext(Dispatchers.IO) {
         val url = "${base()}$path"
         try {
-            val req = Request.Builder()
-                .url(url)
-                .post(json.toRequestBody("application/json".toMediaType()))
-                .build()
-            http.newCall(req).execute().use {
-                Log.i("Esp32", "POST $url -> ${it.code}")
-                it.isSuccessful
+            httpMutex.withLock {
+                val req = Request.Builder()
+                    .url(url)
+                    .post(json.toRequestBody("application/json".toMediaType()))
+                    .build()
+                http.newCall(req).execute().use {
+                    Log.i("Esp32", "POST $url -> ${it.code}")
+                    it.isSuccessful
+                }
             }
         } catch (e: Exception) {
             Log.w("Esp32", "POST $url FAILED: ${e.message}")
