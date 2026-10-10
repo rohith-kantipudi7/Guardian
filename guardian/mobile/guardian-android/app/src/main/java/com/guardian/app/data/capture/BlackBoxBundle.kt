@@ -24,6 +24,7 @@ fun BlackBoxBundle.toTransferJson(
     confidence: Double,
     location: String? = null,
     smsSent: Int = 0,
+    frames: Int = 0,
 ): String {
     val a = assessment
     val text = if (a != null) "${a.whatHappened} ${a.occupantState} ${a.recommendation}" else ""
@@ -31,6 +32,6 @@ fun BlackBoxBundle.toTransferJson(
     val tx = (transcript ?: "").replace("\\", " ").replace("\"", "'").replace("\n", " ")
     return """{"eventId":"${eventId ?: ""}","severity":"$severity","confidence":$confidence,""" +
         """"sensorLog":"$sensorLog","audioSec":$audioDurationSec,"preAudioSec":$preAudioDurationSec,""" +
-        """"images":$images,"location":"${location ?: ""}","smsSent":$smsSent,""" +
+        """"images":$images,"frames":$frames,"location":"${location ?: ""}","smsSent":$smsSent,""" +
         """"transcript":"$tx","assessment":"$text"}"""
 }

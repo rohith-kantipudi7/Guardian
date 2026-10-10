@@ -18,6 +18,14 @@ android {
         versionName = "0.1.0"
         // Default backend/LAN address. Override any time in Settings -> Servers -> Backend URL.
         buildConfigField("String", "DEFAULT_BACKEND_URL", "\"http://10.239.116.232:8000\"")
+        ndk {
+            abiFilters += listOf("arm64-v8a")
+        }
+        externalNativeBuild {
+            cmake {
+                cppFlags += "-std=c++17"
+            }
+        }
     }
 
     buildTypes {
@@ -36,6 +44,17 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+    }
+    // Native whisper.cpp for on-device transcription (sources vendored at project-root whisper.cpp).
+    ndkVersion = "26.3.11579264"
+    externalNativeBuild {
+        cmake {
+            path = file("src/main/cpp/CMakeLists.txt")
+            version = "3.22.1"
+        }
+    }
+    androidResources {
+        noCompress += "bin"
     }
 }
 

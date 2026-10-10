@@ -9,7 +9,7 @@ import com.guardian.app.data.ai.CompositeReasoner
 import com.guardian.app.data.ai.EdgeReasoner
 import com.guardian.app.data.ai.LlmModelManager
 import com.guardian.app.data.ai.OnDeviceAi
-import com.guardian.app.data.ai.StubWhisper
+import com.guardian.app.data.ai.WhisperCppTranscriber
 import com.guardian.app.data.ai.WhisperTranscriber
 import com.guardian.app.data.alert.PhoneLocation
 import com.guardian.app.data.alert.SmsDispatcher
@@ -70,8 +70,8 @@ class AppContainer(app: Application) {
         fallback = EdgeReasoner(),
     )
     val modelManager = LlmModelManager(app)
-    // On-device transcription of the in-cabin audio black box (whisper.cpp; stub until native wired).
-    val whisper: WhisperTranscriber = StubWhisper()
+    // On-device transcription of the in-cabin audio black box (whisper.cpp + ggml tiny.en).
+    val whisper: WhisperTranscriber = WhisperCppTranscriber(app)
     val conversationCapture = ConversationCapture(app).also { it.startPreBuffer(scope) }
     val dualCameraCapture = DualCameraCapture(app)
     // Always-on vehicle black box: buffers recent cabin/road frames so a crash has images instantly.

@@ -15,6 +15,22 @@ Requirements: Android Studio (Ladybug or newer, bundled JDK 17), Android SDK 35.
    real phone: the laptop's Wi-Fi IP, and start the virtual device with `python simulator.py serve --host 0.0.0.0`.
 4. Unit tests: `./gradlew testDebugUnitTest` (or right-click `app/src/test` → Run).
 
+### On-device transcription (whisper.cpp)
+
+The in-cabin audio black box is transcribed on-device with whisper.cpp. Its source and the ggml model
+are **not committed** (size); fetch them once before building:
+
+```powershell
+# from mobile/guardian-android
+git clone --depth 1 https://github.com/ggerganov/whisper.cpp
+# tiny English model (~75 MB) into the app assets
+curl.exe -L -o app/src/main/assets/models/ggml-tiny.en.bin `
+  https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny.en.bin
+```
+
+The native lib builds via `app/src/main/cpp/CMakeLists.txt` (NDK 26, CMake 3.22, arm64-v8a). If the
+model asset is missing, transcription degrades gracefully to empty (the rest of the app is unaffected).
+
 ## How the app connects
 
 ```text

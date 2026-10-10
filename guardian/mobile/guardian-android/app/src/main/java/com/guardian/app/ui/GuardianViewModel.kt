@@ -147,7 +147,7 @@ class GuardianViewModel(
         val ts = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
         return """{"eventId":"LIVE","severity":"MONITORING","confidence":1.0,""" +
             """"sensorLog":"live ${"%.1f".format(st.accelG)} g · ${"%.1f".format(st.rotationRadS)} rad/s",""" +
-            """"audioSec":0,"preAudioSec":0,"images":$images,"location":"${loc ?: ""}","smsSent":0,""" +
+            """"audioSec":0,"preAudioSec":0,"images":$images,"frames":$frames,"location":"${loc ?: ""}","smsSent":0,""" +
             """"assessment":"Live black box streaming · $frames frames buffered · updated $ts · ready to transfer on impact."}"""
     }
 
@@ -382,7 +382,7 @@ class GuardianViewModel(
             val eventId = _alert.value?.eventId
                 ?: "PH-${settingsStore.settings.value.deviceId}-${System.currentTimeMillis()}"
             val smsSent = _alert.value?.dispatches?.count { it.sent } ?: 0
-            val json = bundle.toTransferJson(eventId, r.severity.name, r.confidence, phoneLocation.lastKnown(), smsSent)
+            val json = bundle.toTransferJson(eventId, r.severity.name, r.confidence, phoneLocation.lastKnown(), smsSent, continuousBlackBox.capturedCount)
             if (device.sendBlackBox(json)) {
                 _alert.value = _alert.value?.copy(blackBox = bundle.copy(syncedToDevice = true))
             }
