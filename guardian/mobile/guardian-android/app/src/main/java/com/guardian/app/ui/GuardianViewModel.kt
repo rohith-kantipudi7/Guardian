@@ -8,6 +8,9 @@ import com.guardian.app.data.SwitchableDeviceClient
 import com.guardian.app.data.ai.AiAssessment
 import com.guardian.app.data.ai.CrashContext
 import com.guardian.app.data.ai.OnDeviceAi
+import com.guardian.app.data.alert.AlertDispatch
+import com.guardian.app.data.alert.PhoneLocation
+import com.guardian.app.data.alert.SmsDispatcher
 import com.guardian.app.data.capture.BlackBoxBundle
 import com.guardian.app.data.capture.ContinuousBlackBox
 import com.guardian.app.data.capture.ConversationCapture
@@ -52,6 +55,7 @@ data class EmergencyAlert(
     val helpComingFrom: String? = null,
     val aiAssessment: AiAssessment? = null,
     val blackBox: BlackBoxBundle? = null,
+    val dispatches: List<AlertDispatch> = emptyList(),
 )
 
 class GuardianViewModel(
@@ -65,6 +69,8 @@ class GuardianViewModel(
     private val dualCameraCapture: DualCameraCapture,
     private val continuousBlackBox: ContinuousBlackBox,
     private val alarmSiren: AlarmSiren?,
+    private val smsDispatcher: SmsDispatcher,
+    private val phoneLocation: PhoneLocation,
 ) : ViewModel() {
 
     val link: StateFlow<LinkState> = device.linkState
@@ -278,6 +284,20 @@ class GuardianViewModel(
         )
         if (settings.value.notifications) {
             notifier?.crash("CRASH DETECTED", "${r.severity} impact detected on your phone")
+        }
+        // Real dispatch: text the occupant's emergency contacts over cellular SMS (no internet needed).
+        viewModelScope.launch {
+            val s = settings.value
+            val dispatches = smsDispatcher.dispatch(
+                r.severity,
+                r.confidence,
+                phoneLocation.lastKnown(),
+                "${s.vehicleName} (${s.vehicleRegistration})",
+                s.contacts,
+            )
+            _alert.value = _alert.value?.copy(dispatches = dispatches)
+            val sent = dispatches.count { it.sent }
+            if (sent > 0) _message.value = "Alert SMS sent to $sent contact(s)"
         }
         // Mobile is primary: capture the scene first, then let the AI reason over what we actually have.
         viewModelScope.launch {

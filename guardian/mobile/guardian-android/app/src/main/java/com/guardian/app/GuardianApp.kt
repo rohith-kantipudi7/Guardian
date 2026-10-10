@@ -9,6 +9,8 @@ import com.guardian.app.data.ai.CompositeReasoner
 import com.guardian.app.data.ai.EdgeReasoner
 import com.guardian.app.data.ai.LlmModelManager
 import com.guardian.app.data.ai.OnDeviceAi
+import com.guardian.app.data.alert.PhoneLocation
+import com.guardian.app.data.alert.SmsDispatcher
 import com.guardian.app.data.ble.BleGuardianDeviceClient
 import com.guardian.app.data.capture.ConversationCapture
 import com.guardian.app.data.capture.ContinuousBlackBox
@@ -55,6 +57,8 @@ class AppContainer(app: Application) {
     val repository = GuardianRepository(device, db.crashEvents(), settings, scope)
     val notifier = AlertNotifier(app)
     val alarmSiren = AlarmSiren(app)
+    val smsDispatcher = SmsDispatcher(app)
+    val phoneLocation = PhoneLocation(app)
     // Mobile is primary: the phone's own IMU runs crash detection.
     val phoneSensing = PhoneSensing(app).also { it.start() }
     // Cloud AI is the primary reasoner for now; the on-device model is the offline fallback

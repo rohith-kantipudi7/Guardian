@@ -141,6 +141,25 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
             }
         }
 
+        if (alert.state == CrashState.EMERGENCY_ACTIVE && alert.blackBox?.audioPath == null) {
+            Row(
+                Modifier.fillMaxWidth()
+                    .background(Color(0x22000000), androidx.compose.material3.MaterialTheme.shapes.medium)
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                CircularProgressIndicator(Modifier.size(18.dp), color = Color(0xFF6EE7B7), strokeWidth = 2.dp)
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    if (alert.blackBox == null) "Capturing cabin + road photos and in-cabin voice…"
+                    else "Recording in-cabin audio…",
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                )
+            }
+        }
+
         alert.blackBox?.let { bb ->
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -173,6 +192,42 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
                         preAudioDurationSec = bb.preAudioDurationSec,
                     )
                 }
+            }
+        }
+
+        if (alert.dispatches.isNotEmpty()) {
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("EMERGENCY SMS DISPATCHED", color = Color(0xFFFECACA), fontSize = 11.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+                alert.dispatches.forEach { dsp ->
+                    Column(
+                        Modifier.fillMaxWidth()
+                            .background(Color(0x22000000), androidx.compose.material3.MaterialTheme.shapes.medium)
+                            .padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                "${dsp.label} · ${dsp.recipient}",
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp,
+                                modifier = Modifier.weight(1f),
+                            )
+                            Text(
+                                if (dsp.sent) "SENT ✓" else "READY",
+                                color = if (dsp.sent) Color(0xFF86EFAC) else Color(0xFFFECACA),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                        Text(dsp.message, color = Muted, fontSize = 12.sp)
+                    }
+                }
+                Text(
+                    "Family/contacts get a real SMS over cellular (no internet needed). Police/ambulance messages are composed for the demo.",
+                    color = Muted,
+                    fontSize = 11.sp,
+                )
             }
         }
 
