@@ -6,6 +6,7 @@ import LocalHospitalOutlined from '@mui/icons-material/LocalHospitalOutlined';
 import FamilyRestroomOutlined from '@mui/icons-material/FamilyRestroomOutlined';
 import type { ReactNode } from 'react';
 import type { BlackBox } from '../services/device';
+import { useStep } from '../hooks/useStep';
 
 function CallTarget({ icon, label, number }: Readonly<{ icon: ReactNode; label: string; number: string }>) {
   return (
@@ -33,15 +34,17 @@ function CallTarget({ icon, label, number }: Readonly<{ icon: ReactNode; label: 
   );
 }
 
-/** Guardian AI emergency call — only appears once the dashboard receives a real crash record. */
-export function CallVisual({ bb }: Readonly<{ bb?: BlackBox }>) {
-  const crash = !!bb && (bb.severity ?? '').toUpperCase() !== 'MONITORING' && bb.eventId !== 'LIVE';
-  if (!crash) return null; // no call unless a crash has been received
+/** Guardian AI emergency call — simulated as soon as the dashboard receives a collision message. */
+export function CallVisual({ bb, collision }: Readonly<{ bb?: BlackBox; collision?: boolean }>) {
+  const record = !!bb && (bb.severity ?? '').toUpperCase() !== 'MONITORING' && bb.eventId !== 'LIVE';
+  const crash = record || !!collision;
+  const step = useStep(crash, 3, 1800);
+  if (!crash) return null; // no call unless a collision has been received
 
-  const sev = (bb?.severity ?? '').toUpperCase() || 'A';
+  const sev = record ? (bb?.severity ?? '').toUpperCase() : '';
   const loc = bb?.location && bb.location !== '' ? bb.location : null;
   const script =
-    `“${sev === 'A' ? 'A' : `${sev}`} collision has been detected${loc ? ` near ${loc}` : ''}. ` +
+    `“${sev ? `${sev} collision` : 'A collision'} has been detected${loc ? ` near ${loc}` : ''}. ` +
     'An occupant may be injured and unresponsive. Requesting immediate dispatch to the location.”';
 
   return (
@@ -83,8 +86,8 @@ export function CallVisual({ bb }: Readonly<{ bb?: BlackBox }>) {
 
         <Stack spacing={0.75} sx={{ mt: 1.5 }}>
           <CallTarget icon={<LocalPoliceOutlined fontSize="small" />} label="Police" number="112" />
-          <CallTarget icon={<LocalHospitalOutlined fontSize="small" />} label="Ambulance" number="108" />
-          <CallTarget icon={<FamilyRestroomOutlined fontSize="small" />} label="Family" number="Emergency contact" />
+          {step >= 2 && <CallTarget icon={<LocalHospitalOutlined fontSize="small" />} label="Ambulance" number="108" />}
+          {step >= 3 && <CallTarget icon={<FamilyRestroomOutlined fontSize="small" />} label="Family" number="Emergency contact" />}
         </Stack>
 
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>

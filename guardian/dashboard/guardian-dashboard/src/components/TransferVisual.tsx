@@ -10,6 +10,7 @@ import LocationOnOutlined from '@mui/icons-material/LocationOnOutlined';
 import RecordVoiceOverOutlined from '@mui/icons-material/RecordVoiceOverOutlined';
 import type { ReactNode } from 'react';
 import type { BlackBox } from '../services/device';
+import { useStep } from '../hooks/useStep';
 
 function Node({ icon, label }: Readonly<{ icon: ReactNode; label: string }>) {
   return (
@@ -98,19 +99,22 @@ function MediaPhoto({ src, label }: Readonly<{ src: string; label: string }>) {
 }
 
 /** Visualises the always-on black box: continuous capture streaming, impact artifacts on crash. */
-export function TransferVisual({ bb, live }: Readonly<{ bb?: BlackBox; live: boolean }>) {
+export function TransferVisual({ bb, live, collision }: Readonly<{ bb?: BlackBox; live: boolean; collision?: boolean }>) {
   // A real crash record (vs the "MONITORING" live snapshot the phone streams continuously).
-  const crash = !!bb && (bb.severity ?? '').toUpperCase() !== 'MONITORING' && bb.eventId !== 'LIVE';
+  const record = !!bb && (bb.severity ?? '').toUpperCase() !== 'MONITORING' && bb.eventId !== 'LIVE';
+  const crash = record || !!collision;
+  // Collision message received: items load one by one; real data lights an item immediately.
+  const step = useStep(crash, 4, 1500);
   const frames = bb?.frames ?? 0;
   const media = bb?.media ? bb.media.replace(/\/$/, '') : '';
   // Cache-bust per frame/event so the newest photo loads.
   const bust = `${frames}-${bb?.eventId ?? ''}`;
 
   const impact = [
-    { ok: (bb?.audioSec ?? 0) > 0, icon: <GraphicEqOutlined fontSize="small" />, label: `After‑impact audio (${bb?.audioSec ?? 0}s)` },
-    { ok: !!bb?.transcript, icon: <RecordVoiceOverOutlined fontSize="small" />, label: 'Cabin audio transcript (whisper)' },
-    { ok: crash && !!bb?.assessment, icon: <PsychologyOutlined fontSize="small" />, label: 'AI assessment' },
-    { ok: crash && !!bb?.location, icon: <LocationOnOutlined fontSize="small" />, label: 'GPS location' },
+    { ok: (bb?.audioSec ?? 0) > 0 || step >= 1, icon: <GraphicEqOutlined fontSize="small" />, label: `After‑impact audio (${bb?.audioSec ?? 0}s)` },
+    { ok: !!bb?.transcript || step >= 2, icon: <RecordVoiceOverOutlined fontSize="small" />, label: 'Cabin audio transcript (whisper)' },
+    { ok: (record && !!bb?.assessment) || step >= 3, icon: <PsychologyOutlined fontSize="small" />, label: 'AI assessment' },
+    { ok: (record && !!bb?.location) || step >= 4, icon: <LocationOnOutlined fontSize="small" />, label: 'GPS location' },
   ];
   const done = impact.filter((i) => i.ok).length;
 

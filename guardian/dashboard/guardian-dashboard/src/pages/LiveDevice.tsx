@@ -197,9 +197,9 @@ export function LiveDevice() {
         </Card>
       </Box>
 
-      <TransferVisual bb={bb} live={!!bb || phoneOnline} />
+      <TransferVisual bb={bb} live={!!bb || phoneOnline} collision={collision} />
 
-      <CallVisual bb={bb} />
+      <CallVisual bb={bb} collision={collision} />
 
       <Card>
         <CardContent>
