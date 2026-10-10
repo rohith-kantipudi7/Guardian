@@ -30,7 +30,14 @@ class MainActivity : ComponentActivity() {
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { vm.connect() }
 
     private val audioPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { }
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { startGuardianService() }
+
+    /** Foreground service keeps crash detection + capture + streaming alive in the background. */
+    private fun startGuardianService() {
+        val granted = listOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA)
+            .all { checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED }
+        if (granted) com.guardian.app.service.GuardianService.start(this)
+    }
 
     private fun pair() {
         val needsBle = container.settings.settings.value.deviceSource == DeviceSource.BLE && !BlePermissions.granted(this)
@@ -47,7 +54,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         val media = listOf(Manifest.permission.RECORD_AUDIO, Manifest.permission.CAMERA)
             .filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
-        if (media.isNotEmpty()) audioPermissionLauncher.launch(media.toTypedArray())
+        if (media.isNotEmpty()) audioPermissionLauncher.launch(media.toTypedArray()) else startGuardianService()
         setContent {
             GuardianTheme {
                 GuardianNavHost(vm, onPair = ::pair)
