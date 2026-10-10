@@ -8,6 +8,7 @@ import com.guardian.app.data.SwitchableDeviceClient
 import com.guardian.app.data.ai.AiAssessment
 import com.guardian.app.data.ai.CrashContext
 import com.guardian.app.data.ai.OnDeviceAi
+import com.guardian.app.data.ai.WhisperTranscriber
 import com.guardian.app.data.alert.AlertDispatch
 import com.guardian.app.data.alert.PhoneLocation
 import com.guardian.app.data.alert.SmsDispatcher
@@ -71,6 +72,7 @@ class GuardianViewModel(
     private val alarmSiren: AlarmSiren?,
     private val smsDispatcher: SmsDispatcher,
     private val phoneLocation: PhoneLocation,
+    private val whisper: WhisperTranscriber,
 ) : ViewModel() {
 
     val link: StateFlow<LinkState> = device.linkState
@@ -364,11 +366,14 @@ class GuardianViewModel(
             )
             // Before + after in-cabin audio (the pre-buffer already holds the seconds before impact).
             val audio = conversationCapture.captureAroundCrash()
+            // On-device transcription of the in-cabin audio (whisper.cpp; null until the model ships).
+            val transcript = whisper.transcribe(audio.postPath)
             val bundle = photoOnly.copy(
                 audioPath = audio.postPath,
                 audioDurationSec = audio.postDurationSec,
                 preAudioPath = audio.prePath,
                 preAudioDurationSec = audio.preDurationSec,
+                transcript = transcript,
                 assessment = assessment,
             )
             _alert.value = _alert.value?.copy(blackBox = bundle)

@@ -20,6 +20,7 @@ import GroupsOutlined from '@mui/icons-material/GroupsOutlined';
 import WarningAmberOutlined from '@mui/icons-material/WarningAmberOutlined';
 import SensorsOutlined from '@mui/icons-material/SensorsOutlined';
 import { KpiCard } from '../components/KpiCard';
+import { TransferVisual } from '../components/TransferVisual';
 import { config } from '../config';
 import { useBackupAlert } from '../hooks/useBackupAlert';
 import { useBlackBox, useDeviceData, usePhoneData } from '../services/device';
@@ -182,6 +183,8 @@ export function LiveDevice() {
           </CardContent>
         </Card>
       </Box>
+
+      <TransferVisual bb={bb} live={!!bb || phoneOnline} />
 
       <Card>
         <CardContent>

@@ -36,6 +36,10 @@ dist/
 *.jks
 *.hprof
 
+# Vendored whisper.cpp source (clone locally; see mobile README)
+whisper.cpp/
+**/ggml-*.bin
+
 # PlatformIO
 **/.pio/
 **/include/config/secrets.h

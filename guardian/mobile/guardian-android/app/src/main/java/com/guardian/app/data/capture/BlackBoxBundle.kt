@@ -28,7 +28,9 @@ fun BlackBoxBundle.toTransferJson(
     val a = assessment
     val text = if (a != null) "${a.whatHappened} ${a.occupantState} ${a.recommendation}" else ""
     val images = listOfNotNull(cabinImagePath, roadImagePath).size
+    val tx = (transcript ?: "").replace("\\", " ").replace("\"", "'").replace("\n", " ")
     return """{"eventId":"${eventId ?: ""}","severity":"$severity","confidence":$confidence,""" +
         """"sensorLog":"$sensorLog","audioSec":$audioDurationSec,"preAudioSec":$preAudioDurationSec,""" +
-        """"images":$images,"location":"${location ?: ""}","smsSent":$smsSent,"assessment":"$text"}"""
+        """"images":$images,"location":"${location ?: ""}","smsSent":$smsSent,""" +
+        """"transcript":"$tx","assessment":"$text"}"""
 }

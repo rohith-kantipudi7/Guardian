@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
 
     private val vm: GuardianViewModel by viewModels {
         viewModelFactory {
-            initializer { GuardianViewModel(container.repository, container.device, container.settings, container.notifier, container.phoneSensing, container.onDeviceAi, container.conversationCapture, container.dualCameraCapture, container.continuousBlackBox, container.alarmSiren, container.smsDispatcher, container.phoneLocation) }
+            initializer { GuardianViewModel(container.repository, container.device, container.settings, container.notifier, container.phoneSensing, container.onDeviceAi, container.conversationCapture, container.dualCameraCapture, container.continuousBlackBox, container.alarmSiren, container.smsDispatcher, container.phoneLocation, container.whisper) }
         }
     }
 
