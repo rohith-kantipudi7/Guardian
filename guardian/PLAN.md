@@ -40,7 +40,9 @@ CRASH
       "no audio")
 - [x] **Live demo**: "Capture test" button runs the real dual‑camera + mic now (no crash needed)
 - [x] Show the captured **cabin + road photos** and **play before/after audio** in‑app (emergency + demo)
-- [~] Extend the AI to actually read the audio + image **bytes** (currently reasons over signals + evidence)
+- [~] Extend the AI to read the captured media: **audio is now transcribed on‑device**
+      (whisper.cpp `tiny.en`, native JNI/CMake) and the **transcript feeds the AI + dashboard**;
+      image **bytes** are still summarised as evidence (not pixel‑level vision yet)
 
 ## 2. IoT device = backup + full data transfer
 - [~] Define the complete black‑box bundle (AI assessment + audio + images + sensor log + GPS + time)
@@ -116,16 +118,19 @@ CRASH
 ### 2. IoT buzzer — [ ] blocked on hardware
 Waiting on the buzzer component. Firmware driver + Copilot prompt are ready; wire on arrival.
 
-### 3. Connectivity without a SIM — [~] show in UI for now
-- No SIM = no real SMS/call can go out. **Showcase in the UI**: display the SMS content (done) and a
-  simulated **call** screen ("Calling 112 / 108 / family…") from the phone and/or IoT.
+### 3. Connectivity without a SIM — [~] showcased in the UI
+- No SIM = no real SMS/call can go out. **Showcase in the UI**: SMS content (done) **and an AI
+  emergency‑call visual** on the dashboard — `CallVisual` shows the **Guardian AI placing the call**
+  to Police 112 / Ambulance 108 / family, reading the incident, and **only renders after a crash
+  record is received** (never during monitoring).
 - With a SIM later: real SMS (built) + `ACTION_CALL` auto‑dial.
 
-### 4. Continuous audio processing (transcription) — [ ]
-- Add **speech‑to‑text** (Whisper): on‑device `whisper.cpp`/TFLite, or cloud Whisper when online.
-- Rolling **10‑minute** audio + photo buffer already refreshes (override old with new).
-- On crash: transcribe + analyse the **before + after** audio (both already captured) and feed the
-  transcript to the AI.
+### 4. Continuous audio processing (transcription) — [x] done
+- **On‑device Whisper** (`whisper.cpp` `tiny.en`) built natively (NDK 26 / CMake 3.22, arm64‑v8a);
+  `AudioDecoder` turns the recorded AAC clip into 16 kHz mono PCM and `WhisperCppTranscriber` runs it.
+- The **after‑impact** clip is transcribed on crash; the transcript is added to the black‑box bundle
+  + transfer JSON and shown on the dashboard. (Before‑impact is the same continuous rolling audio.)
+- Rolling **10‑minute** audio + photo buffer refreshes (override old with new).
 
 ### 5. Capture images when the phone is disconnected — [ ]
 - Buffer the latest cabin/road frames on the phone and hand them to the IoT **before** loss; the
@@ -146,9 +151,10 @@ Waiting on the buzzer component. Firmware driver + Copilot prompt are ready; wir
 - [x] Removed the two Copilot meta files (`GUARDIAN_COPILOT_BUILD_SPEC.md`, `.github/copilot-instructions.md`)
 
 ## Needed from you
-- [ ] **SIM card** for real SMS/calls (currently showcased in the UI only)
+- [ ] **SIM card** for real SMS/calls (currently showcased in the UI only — incl. the AI call visual)
 - [ ] **Buzzer component** for the IoT alarm
-- [ ] Decide **Whisper** target: on‑device (offline, heavy) vs cloud (needs internet)
+- [x] Decided **Whisper** target: **on‑device** `whisper.cpp` `tiny.en` (offline). Bump to `base.en`
+      for better accuracy if the larger APK is acceptable.
 - [ ] **Rotate the Azure keys** in `.env` — they were exposed in chat and must be regenerated
 
 ## Already in place (starting point)

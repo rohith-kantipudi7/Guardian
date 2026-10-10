@@ -87,7 +87,6 @@ export function TransferVisual({ bb, live }: Readonly<{ bb?: BlackBox; live: boo
   const frames = bb?.frames ?? 0;
 
   const impact = [
-    { ok: (bb?.preAudioSec ?? 0) > 0, icon: <GraphicEqOutlined fontSize="small" />, label: `Before‑impact audio (${bb?.preAudioSec ?? 0}s)` },
     { ok: (bb?.audioSec ?? 0) > 0, icon: <GraphicEqOutlined fontSize="small" />, label: `After‑impact audio (${bb?.audioSec ?? 0}s)` },
     { ok: !!bb?.transcript, icon: <RecordVoiceOverOutlined fontSize="small" />, label: 'Cabin audio transcript (whisper)' },
     { ok: crash && !!bb?.assessment, icon: <PsychologyOutlined fontSize="small" />, label: 'AI assessment' },
