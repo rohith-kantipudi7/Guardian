@@ -56,7 +56,7 @@ function Node({
   const st = nodeState(online);
   return (
     <Stack spacing={0.5} sx={{ alignItems: 'center', minWidth: 110 }}>
-      <Avatar sx={{ bgcolor: 'transparent', border: 2, borderColor: st.color, color: st.color, width: 48, height: 48 }}>
+      <Avatar sx={{ bgcolor: 'transparent', border: 2, borderColor: st.color, color: st.color, width: 72, height: 72, '& svg': { fontSize: 38 } }}>
         {icon}
       </Avatar>
       <Typography variant="body2" sx={{ fontWeight: 700 }}>

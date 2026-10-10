@@ -127,19 +127,19 @@ private fun stateColor(ok: Boolean?) = when (ok) {
 fun ConnectionChain(nodes: List<ChainNode>, links: List<ChainLink>) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
         nodes.forEachIndexed { i, n ->
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(64.dp)) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.width(72.dp)) {
                 Box(
                     Modifier
-                        .size(46.dp)
-                        .neu(23.dp, 3.dp),
+                        .size(60.dp)
+                        .neu(30.dp, 3.dp),
                     contentAlignment = Alignment.Center,
-                ) { Icon(n.icon, null, tint = stateColor(n.ok)) }
+                ) { Icon(n.icon, null, Modifier.size(32.dp), tint = stateColor(n.ok)) }
                 Spacer(Modifier.height(6.dp))
                 Text(n.label, fontSize = 11.sp, textAlign = TextAlign.Center, lineHeight = 13.sp)
             }
             if (i < links.size) {
                 val l = links[i]
-                Column(Modifier.weight(1f).padding(top = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(Modifier.weight(1f).padding(top = 15.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(l.label, fontSize = 10.sp, color = stateColor(l.ok), fontWeight = FontWeight.Bold, maxLines = 1)
                     Spacer(Modifier.height(4.dp))
                     Box(Modifier.fillMaxWidth().height(3.dp).background(stateColor(l.ok).copy(alpha = if (l.ok == false) 0.35f else 0.8f), RoundedCornerShape(2.dp)))
@@ -167,7 +167,7 @@ fun ResponderRow(r: Responder) {
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Icon(responderIcon(r.type), null, tint = color)
+        Icon(responderIcon(r.type), null, Modifier.size(32.dp), tint = color)
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Text(r.label, fontWeight = FontWeight.Bold)
