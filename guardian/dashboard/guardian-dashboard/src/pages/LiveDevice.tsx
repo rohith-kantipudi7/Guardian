@@ -21,6 +21,7 @@ import WarningAmberOutlined from '@mui/icons-material/WarningAmberOutlined';
 import SensorsOutlined from '@mui/icons-material/SensorsOutlined';
 import { KpiCard } from '../components/KpiCard';
 import { config } from '../config';
+import { useBackupAlert } from '../hooks/useBackupAlert';
 import { useBlackBox, useDeviceData, usePhoneData } from '../services/device';
 
 function Stat({ label, value }: Readonly<{ label: string; value: string }>) {
@@ -81,7 +82,8 @@ export function LiveDevice() {
   const p = phone.data;
   const bb = blackbox.data;
   const phoneOnline = !!p?.phoneOnline;
-  const backupAlert = !!d?.backupAlert;
+  const [alert] = useBackupAlert(d, p);
+  const backupAlert = alert.active;
 
   return (
     <Stack spacing={3}>

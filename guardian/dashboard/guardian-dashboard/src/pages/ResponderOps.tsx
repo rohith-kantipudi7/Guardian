@@ -1,6 +1,7 @@
 import {
   Alert,
   Box,
+  Button,
   Card,
   CardContent,
   Chip,
@@ -21,6 +22,7 @@ import SmartphoneOutlined from '@mui/icons-material/SmartphoneOutlined';
 import type { ReactNode } from 'react';
 import { KpiCard } from '../components/KpiCard';
 import { config } from '../config';
+import { useBackupAlert } from '../hooks/useBackupAlert';
 import { useBlackBox, useDeviceData, usePhoneData } from '../services/device';
 
 function severityColor(sev?: string): 'error' | 'warning' | 'info' | 'default' {
@@ -70,8 +72,8 @@ export function ResponderOps() {
   const bb = blackbox.data;
   const deviceOnline = !data.isError && !!d;
   const phoneOnline = !!p?.phoneOnline;
-  const backupAlert = !!d?.backupAlert;
-  const active = backupAlert || p?.state === 'EMERGENCY' || !!bb?.eventId;
+  const [alert, ackAlert] = useBackupAlert(d, p);
+  const active = alert.active || p?.state === 'EMERGENCY' || !!bb?.eventId;
 
   return (
     <Stack spacing={3}>
@@ -85,9 +87,18 @@ export function ResponderOps() {
       {!deviceOnline && (
         <Alert severity="warning">Device offline. Connect to the Guardian hotspot to see live incidents.</Alert>
       )}
-      {backupAlert && (
-        <Alert severity="error" variant="filled" sx={{ fontWeight: 700 }}>
-          BACKUP ALERT — the device escalated on its own because the phone was offline during a collision.
+      {alert.active && (
+        <Alert
+          severity="error"
+          variant="filled"
+          sx={{ fontWeight: 700 }}
+          action={
+            <Button color="inherit" size="small" onClick={ackAlert}>
+              Acknowledge
+            </Button>
+          }
+        >
+          BACKUP ALERT — the black box detected a collision while the phone was offline and escalated on its own.
         </Alert>
       )}
 
