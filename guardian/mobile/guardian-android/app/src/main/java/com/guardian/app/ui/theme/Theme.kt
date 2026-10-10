@@ -14,22 +14,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// Claymorphism palette (white surfaces on light grey), matched to the web dashboard.
+// Claymorphism palette (white surfaces on soft lavender), purple variant for the phone.
 val Ok = Color(0xFF1E8E4E)
 val Bad = Color(0xFFD92D4A)
 val Warn = Color(0xFFB7791F)
 val Critical = Color(0xFFD92D4A)
-val Info = Color(0xFF2563EB)
-val Violet = Color(0xFF52617A)
-val Muted = Color(0xFF5B6B82)
+val Info = Color(0xFF6D4AE0)
+val Violet = Color(0xFF8B6FF0)
+val Muted = Color(0xFF6B6785)
 
-val Bg = Color(0xFFEEF0F4)
+val Bg = Color(0xFFEAE6F7)
 val Surface1 = Color.White
 val Surface2 = Color.White
-val Line = Color(0xFFDDE1E8)
-val ShadowDark = Color(0xFFB8C1D0)
+val Line = Color(0xFFD9D3EE)
+val ShadowDark = Color(0xFFB9B0DC)
 val ShadowLight = Color(0xFFFFFFFF)
-val TextPrimary = Color(0xFF1F2937)
+val TextPrimary = Color(0xFF241F3A)
 
 val BrandCyan = Info
 val BrandBlue = Info

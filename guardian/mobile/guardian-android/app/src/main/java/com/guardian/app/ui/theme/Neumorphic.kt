@@ -13,8 +13,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-private val ClayShadow = Color(0x33253041)
-private val ClayShade = Color(0xFFF0F2F6)
+private val ClayShadow = Color(0x40463A8C)
+private val ClayShade = Color(0xFFEFEBFA)
 
 /** Clay surface: soft drop shadow below a white, puffy rounded body that darkens slightly toward the bottom edge. */
 fun Modifier.neu(corner: Dp = 24.dp, depth: Dp = 6.dp, fill: Color = Color.White): Modifier = drawBehind {
