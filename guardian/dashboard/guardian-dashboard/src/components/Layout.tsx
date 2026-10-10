@@ -14,10 +14,7 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material';
-import DashboardOutlined from '@mui/icons-material/DashboardOutlined';
-import ListAltOutlined from '@mui/icons-material/ListAltOutlined';
 import RouterOutlined from '@mui/icons-material/RouterOutlined';
-import DirectionsCarOutlined from '@mui/icons-material/DirectionsCarOutlined';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import ShieldOutlined from '@mui/icons-material/ShieldOutlined';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
@@ -27,10 +24,6 @@ import { brandGradient, surfaces } from '../theme';
 
 const NAV = [
   { to: '/', label: 'Live network', icon: <RouterOutlined />, end: true },
-  { to: '/ops', label: 'Responder ops', icon: <DashboardOutlined /> },
-  { to: '/incidents', label: 'Incident log', icon: <ListAltOutlined /> },
-  { to: '/devices', label: 'Devices', icon: <RouterOutlined /> },
-  { to: '/vehicles', label: 'Vehicles', icon: <DirectionsCarOutlined /> },
   { to: '/about', label: 'How it works', icon: <InfoOutlined /> },
 ];
 
