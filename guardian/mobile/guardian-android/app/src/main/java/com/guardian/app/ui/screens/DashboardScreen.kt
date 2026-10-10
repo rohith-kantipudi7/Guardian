@@ -65,6 +65,7 @@ import com.guardian.app.ui.components.CaptureEvidence
 import com.guardian.app.ui.components.ChainLink
 import com.guardian.app.ui.components.ChainNode
 import com.guardian.app.ui.components.ConnectionChain
+import com.guardian.app.ui.components.DataTable
 import com.guardian.app.ui.components.Pill
 import com.guardian.app.ui.components.SectionCard
 import com.guardian.app.ui.components.StatusRow
@@ -186,23 +187,11 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
             if (lastAnomaly == null) {
                 Text("No abnormal activity detected. Drive safe.", color = Muted)
             } else {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Rounded.Warning,
-                        null,
-                        tint = if (lastAnomaly.critical) Critical else Warn,
-                        modifier = Modifier.size(20.dp).padding(end = 4.dp),
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            lastAnomaly.type.label,
-                            color = if (lastAnomaly.critical) Critical else MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.Black,
-                        )
-                        Text("${lastAnomaly.detail} · ${formatTimestampMs(lastAnomaly.timestampMs)}", color = Muted, fontSize = 13.sp)
-                    }
-                }
+                DataTable(
+                    headers = listOf("Event", "Detail", "Time"),
+                    rows = anomalies.take(4).map { listOf(it.type.label, it.detail, formatTimestampMs(it.timestampMs)) },
+                    weights = listOf(1.2f, 1.4f, 1f),
+                )
             }
         }
 

@@ -201,3 +201,29 @@ fun statusText(status: String): Pair<String, Color> = when (status) {
     "QUEUED_ON_DEVICE" -> "Queued on device" to Warn
     else -> status.lowercase().replace('_', ' ') to Muted
 }
+
+/** Simple table: a muted header row, then rows separated by hairlines. Column weights are given per column. */
+@Composable
+fun DataTable(headers: List<String>, rows: List<List<String>>, weights: List<Float>, accentCol: Int? = null, accent: Color = Muted) {
+    Column(Modifier.fillMaxWidth()) {
+        Row(Modifier.fillMaxWidth().padding(bottom = 6.dp)) {
+            headers.forEachIndexed { i, h ->
+                Text(h.uppercase(), Modifier.weight(weights[i]), color = Muted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+            }
+        }
+        rows.forEach { r ->
+            Box(Modifier.fillMaxWidth().height(1.dp).background(com.guardian.app.ui.theme.Line))
+            Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                r.forEachIndexed { i, cell ->
+                    Text(
+                        cell,
+                        Modifier.weight(weights[i]),
+                        fontSize = 13.sp,
+                        fontWeight = if (i == 0 || i == accentCol) FontWeight.Bold else FontWeight.Normal,
+                        color = if (i == accentCol) accent else if (i == 0) com.guardian.app.ui.theme.TextPrimary else Muted,
+                    )
+                }
+            }
+        }
+    }
+}

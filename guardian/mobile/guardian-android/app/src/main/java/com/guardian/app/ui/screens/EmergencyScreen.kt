@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import com.guardian.app.domain.CrashState
 import com.guardian.app.ui.EmergencyAlert
 import com.guardian.app.ui.components.CaptureEvidence
+import com.guardian.app.ui.components.DataTable
 import com.guardian.app.ui.components.formatCoords
 import com.guardian.app.ui.theme.Bg
 import com.guardian.app.ui.theme.Critical
@@ -123,15 +124,7 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
             Text("${elapsed / 60}m ${elapsed % 60}s ago", color = Muted, fontSize = 12.sp)
         }
 
-        // 2. I'm safe
-        Button(
-            onClick = onImSafe,
-            modifier = Modifier.fillMaxWidth().height(72.dp),
-            shape = MaterialTheme.shapes.large,
-            colors = ButtonDefaults.buttonColors(containerColor = Ok, contentColor = Color.White),
-        ) { Text("I'M SAFE", fontSize = 26.sp, fontWeight = FontWeight.Black) }
-
-        // 3. Photos
+        // 2. Photos
         if (hasMedia && bb != null) {
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("CAPTURED", color = Muted, fontSize = Label, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
@@ -153,19 +146,34 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
             }
         }
 
-        // 4. Calling the three contacts
+        // 3. Calling the three contacts
         if (alert.state == CrashState.EMERGENCY_ACTIVE) {
             CallingList()
         }
 
+        // 4. I'm safe
+        Button(
+            onClick = onImSafe,
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+            shape = MaterialTheme.shapes.medium,
+            colors = ButtonDefaults.buttonColors(containerColor = Ok, contentColor = Color.White),
+        ) { Text("I'M SAFE", fontSize = 18.sp, fontWeight = FontWeight.Black) }
+
         // 5. Readings
+        val log = bb?.sensorLog.orEmpty()
+        val peak = Regex("peak ([0-9.]+) g").find(log)?.groupValues?.get(1)
+        val rot = Regex("rot ([0-9.]+) rad/s").find(log)?.groupValues?.get(1)
         Column(Modifier.fillMaxWidth().neu(16.dp, 3.dp).padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("READINGS", color = Muted, fontSize = Label, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
-            Text(bb?.sensorLog ?: "Waiting for sensor data…", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-            Text(
-                if (alert.latitude != null) formatCoords(alert.latitude, alert.longitude) else "Location from the vehicle device",
-                color = Muted,
-                fontSize = 13.sp,
+            DataTable(
+                headers = listOf("Reading", "Value"),
+                rows = listOf(
+                    listOf("Peak impact", peak?.let { "$it g" } ?: "—"),
+                    listOf("Rotation", rot?.let { "$it rad/s" } ?: "—"),
+                    listOf("Location", if (alert.latitude != null) formatCoords(alert.latitude, alert.longitude) else "—"),
+                    listOf("Time", "${elapsed / 60}m ${elapsed % 60}s ago"),
+                ),
+                weights = listOf(1f, 1.4f),
             )
         }
 
