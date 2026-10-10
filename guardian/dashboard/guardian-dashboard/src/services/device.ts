@@ -14,6 +14,8 @@ export interface DeviceData {
   count: number;
   uptime: number;
   events: DeviceEvent[];
+  // Set by the device when it escalates on its own (collision while the phone was offline).
+  backupAlert?: boolean;
 }
 
 export interface PhoneData {

@@ -81,6 +81,7 @@ export function LiveDevice() {
   const p = phone.data;
   const bb = blackbox.data;
   const phoneOnline = !!p?.phoneOnline;
+  const backupAlert = !!d?.backupAlert;
 
   return (
     <Stack spacing={3}>
@@ -92,6 +93,12 @@ export function LiveDevice() {
         </Typography>
       </Box>
 
+      {backupAlert && (
+        <Alert severity="error" variant="filled" sx={{ fontWeight: 700 }}>
+          BACKUP ALERT — the device detected a collision while the phone was offline and escalated on its own.
+        </Alert>
+      )}
+
       <Card>
         <CardContent>
           <Typography variant="overline" color="text.secondary">
@@ -101,8 +108,13 @@ export function LiveDevice() {
             <Node label="Phone" sub="Primary" online={phoneOnline} icon={<SmartphoneOutlined />} />
             <Link ok={phoneOnline && deviceOnline} />
             <Node label="Guardian device" sub="Backup" online={deviceOnline} icon={<RouterOutlined />} />
-            <Link ok={false} />
-            <Node label="Responders" sub="Needs internet" online={null} icon={<GroupsOutlined />} />
+            <Link ok={backupAlert} />
+            <Node
+              label="Responders"
+              sub={backupAlert ? 'Alerting' : 'Needs internet'}
+              online={backupAlert ? true : null}
+              icon={<GroupsOutlined />}
+            />
           </Stack>
         </CardContent>
       </Card>
