@@ -96,6 +96,10 @@ class GuardianViewModel(
     private val _deviceStreaming = MutableStateFlow(false)
     val deviceStreaming: StateFlow<Boolean> = _deviceStreaming.asStateFlow()
 
+    /** Demo: continuously transfer a live black-box snapshot to the device to show the pipeline live. */
+    private val _liveTransfer = MutableStateFlow(false)
+    val liveTransfer: StateFlow<Boolean> = _liveTransfer.asStateFlow()
+
     private val _alert = MutableStateFlow<EmergencyAlert?>(null)
     val alert: StateFlow<EmergencyAlert?> = _alert.asStateFlow()
 
@@ -121,7 +125,33 @@ class GuardianViewModel(
                 delay(1000)
             }
         }
+        // Live black-box transfer demo: push an evolving snapshot to the device every 3s so the
+        // dashboard shows the black box filling + transferring in real time.
+        viewModelScope.launch {
+            while (true) {
+                if (_liveTransfer.value) runCatching { device.sendBlackBox(liveBlackBoxJson()) }
+                delay(3000)
+            }
+        }
         if (device.source != DeviceSource.BLE) device.connect()
+    }
+
+    private fun liveBlackBoxJson(): String {
+        val st = sensing.state.value
+        val photos = continuousBlackBox.latest()
+        val images = listOfNotNull(photos.cabinPath, photos.roadPath).size
+        val frames = continuousBlackBox.capturedCount
+        val loc = phoneLocation.lastKnown()
+        val ts = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
+        return """{"eventId":"LIVE","severity":"MONITORING","confidence":1.0,""" +
+            """"sensorLog":"live ${"%.1f".format(st.accelG)} g · ${"%.1f".format(st.rotationRadS)} rad/s",""" +
+            """"audioSec":0,"preAudioSec":0,"images":$images,"location":"${loc ?: ""}","smsSent":0,""" +
+            """"assessment":"Live black box streaming · $frames frames buffered · updated $ts · ready to transfer on impact."}"""
+    }
+
+    fun setLiveTransfer(on: Boolean) {
+        _liveTransfer.value = on
+        _message.value = if (on) "Live black box transfer started" else "Live black box transfer stopped"
     }
 
     private fun addAnomaly(a: AnomalyEvent) {
@@ -172,11 +202,10 @@ class GuardianViewModel(
     /** Manually push a black box to the connected device over Wi-Fi, to test the transfer path. */
     fun sendBlackBoxToDevice() = viewModelScope.launch {
         val bb = _demoCapture.value
-        val json = bb?.toTransferJson(null, "TEST", 0.9)
-            ?: """{"eventId":"TEST","severity":"TEST","confidence":0.9,"sensorLog":"manual test",""" +
-            """"audioSec":0,"preAudioSec":0,"images":0,"assessment":"Guardian app test black box"}"""
+        val json = bb?.toTransferJson("SNAP-${System.currentTimeMillis()}", "SNAPSHOT", 1.0, phoneLocation.lastKnown(), 0)
+            ?: liveBlackBoxJson()
         _message.value = if (device.sendBlackBox(json)) {
-            "Black box sent to device ✓"
+            "Black box snapshot sent to device ✓"
         } else {
             "Device didn't accept it — pick the Wi-Fi device + check the IP"
         }

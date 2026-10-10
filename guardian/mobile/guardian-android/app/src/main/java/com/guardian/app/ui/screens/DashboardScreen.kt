@@ -43,6 +43,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -85,6 +86,7 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
     val demoCapture by vm.demoCapture.collectAsStateWithLifecycle()
     val capturing by vm.capturing.collectAsStateWithLifecycle()
     val deviceStreaming by vm.deviceStreaming.collectAsStateWithLifecycle()
+    val liveTransfer by vm.liveTransfer.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val camerasArmed = ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) ==
         android.content.pm.PackageManager.PERMISSION_GRANTED
@@ -264,6 +266,17 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
                     Icon(Icons.Rounded.Send, null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
                     Text("Send black box → device")
+                }
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Column(Modifier.weight(1f)) {
+                        Text("Live transfer to black box", fontWeight = FontWeight.Bold)
+                        Text(
+                            if (liveTransfer) "Streaming a live snapshot to the device every 3s" else "Off — flip on to demo the live transfer",
+                            color = Muted,
+                            fontSize = 12.sp,
+                        )
+                    }
+                    Switch(checked = liveTransfer, onCheckedChange = { vm.setLiveTransfer(it) })
                 }
             }
         }

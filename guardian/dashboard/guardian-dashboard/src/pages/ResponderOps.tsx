@@ -105,7 +105,7 @@ export function ResponderOps() {
       <Box>
         <Typography variant="h4">Responder ops</Typography>
         <Typography color="text.secondary">
-          Incidents and escalation, fed live from the Guardian device — no backend required.
+          Incidents and escalation, fed live from the Guardian device
         </Typography>
       </Box>
 

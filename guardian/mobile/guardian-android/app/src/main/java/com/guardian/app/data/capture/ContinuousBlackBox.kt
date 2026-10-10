@@ -28,6 +28,10 @@ class ContinuousBlackBox(
     @Volatile private var lastCabin: String? = null
     @Volatile private var lastRoad: String? = null
 
+    /** Total frames captured since arming — shows the black box filling up during a live demo. */
+    @Volatile var capturedCount: Int = 0
+        private set
+
     private fun cameraGranted() =
         ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
 
@@ -41,6 +45,7 @@ class ContinuousBlackBox(
                     val path = runCatching { camera.captureSingle(front, dir) }.getOrNull()
                     if (path != null) {
                         if (front) lastCabin = path else lastRoad = path
+                        capturedCount++
                     }
                     prune()
                     front = !front
