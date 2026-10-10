@@ -36,6 +36,8 @@ export interface BlackBox {
   images?: number;
   frames?: number;
   media?: string; // phone-hosted media server base URL
+  thumbCabin?: string; // base64 JPEG thumbnails the device keeps if the phone is lost
+  thumbRoad?: string;
   assessment?: string;
   location?: string; // "lat,lon"
   smsSent?: number;

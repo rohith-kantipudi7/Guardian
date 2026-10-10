@@ -11,6 +11,7 @@ import RecordVoiceOverOutlined from '@mui/icons-material/RecordVoiceOverOutlined
 import type { ReactNode } from 'react';
 import type { BlackBox } from '../services/device';
 import { useStep } from '../hooks/useStep';
+import { MediaPhoto } from './MediaPhoto';
 
 function Node({ icon, label }: Readonly<{ icon: ReactNode; label: string }>) {
   return (
@@ -78,23 +79,6 @@ function ImpactRow({ ok, icon, label }: Readonly<{ ok: boolean; icon: ReactNode;
         <RadioButtonUnchecked fontSize="small" sx={{ color: 'text.disabled' }} />
       )}
     </Stack>
-  );
-}
-
-/** Real captured photo served by the phone; hides itself if the phone is unreachable. */
-function MediaPhoto({ src, label }: Readonly<{ src: string; label: string }>) {
-  return (
-    <Box sx={{ flex: 1, minWidth: 0 }}>
-      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>{label}</Typography>
-      <Box
-        component="img"
-        src={src}
-        alt={label}
-        onError={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'hidden'; }}
-        onLoad={(e) => { (e.currentTarget as HTMLImageElement).style.visibility = 'visible'; }}
-        sx={{ width: '100%', maxHeight: 180, objectFit: 'cover', borderRadius: 1, bgcolor: 'action.hover' }}
-      />
-    </Box>
   );
 }
 
@@ -171,8 +155,8 @@ export function TransferVisual({ bb, live, collision }: Readonly<{ bb?: BlackBox
 
         {media && (bb?.images ?? 0) > 0 && (
           <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-            <MediaPhoto src={`${media}/cabin.jpg?v=${bust}`} label="Cabin (latest)" />
-            <MediaPhoto src={`${media}/road.jpg?v=${bust}`} label="Road (latest)" />
+            <MediaPhoto src={`${media}/cabin.jpg?v=${bust}`} label="Cabin (latest)" fallback={bb?.thumbCabin} />
+            <MediaPhoto src={`${media}/road.jpg?v=${bust}`} label="Road (latest)" fallback={bb?.thumbRoad} />
           </Stack>
         )}
 

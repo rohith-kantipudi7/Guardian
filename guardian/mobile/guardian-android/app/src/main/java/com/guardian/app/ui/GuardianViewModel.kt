@@ -132,14 +132,24 @@ class GuardianViewModel(
         // dashboard shows the black box filling + transferring in real time.
         viewModelScope.launch {
             while (true) {
-                if (_liveTransfer.value) runCatching { device.sendBlackBox(liveBlackBoxJson()) }
+                if (_liveTransfer.value) runCatching { sendBox { liveBlackBoxJson(it) } }
                 delay(3000)
             }
         }
         if (device.source != DeviceSource.BLE) device.connect()
     }
 
-    private fun liveBlackBoxJson(): String {
+    @Volatile private var thumbsOk = true
+
+    /** Sends with last-frame thumbnails; if only the thumbnail-free body is accepted, stops sending them. */
+    private suspend fun sendBox(build: (withThumbs: Boolean) -> String): Boolean {
+        if (thumbsOk && device.sendBlackBox(build(true))) return true
+        val ok = device.sendBlackBox(build(false))
+        if (ok) thumbsOk = false
+        return ok
+    }
+
+    private fun liveBlackBoxJson(withThumbs: Boolean = true): String {
         val st = sensing.state.value
         val photos = continuousBlackBox.latest()
         mediaServer.cabinPath = photos.cabinPath
@@ -148,7 +158,11 @@ class GuardianViewModel(
         val frames = continuousBlackBox.capturedCount
         val loc = phoneLocation.lastKnown()
         val ts = java.text.SimpleDateFormat("HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
-        return """{"eventId":"LIVE","severity":"MONITORING","confidence":1.0,""" +
+        val thumbs = if (withThumbs) {
+            """"thumbCabin":"${com.guardian.app.data.media.ThumbnailEncoder.encode(photos.cabinPath)}",""" +
+                """"thumbRoad":"${com.guardian.app.data.media.ThumbnailEncoder.encode(photos.roadPath)}","""
+        } else ""
+        return """{"eventId":"LIVE","severity":"MONITORING","confidence":1.0,""" + thumbs +
             """"sensorLog":"live ${"%.1f".format(st.accelG)} g · ${"%.1f".format(st.rotationRadS)} rad/s",""" +
             """"audioSec":0,"preAudioSec":0,"images":$images,"frames":$frames,"media":"${mediaServer.baseUrl() ?: ""}","location":"${loc ?: ""}","smsSent":0,""" +
             """"assessment":"Live black box streaming · $frames frames buffered · updated $ts · ready to transfer on impact."}"""
@@ -389,8 +403,12 @@ class GuardianViewModel(
             mediaServer.roadPath = bundle.roadImagePath
             mediaServer.afterAudioPath = bundle.audioPath
             mediaServer.preAudioPath = bundle.preAudioPath
-            val json = bundle.toTransferJson(eventId, r.severity.name, r.confidence, phoneLocation.lastKnown(), smsSent, continuousBlackBox.capturedCount, mediaServer.baseUrl())
-            if (device.sendBlackBox(json)) {
+            val mediaBase = mediaServer.baseUrl()
+            val frames = continuousBlackBox.capturedCount
+            val ok = sendBox { thumbs ->
+                bundle.toTransferJson(eventId, r.severity.name, r.confidence, phoneLocation.lastKnown(), smsSent, frames, mediaBase, thumbs)
+            }
+            if (ok) {
                 _alert.value = _alert.value?.copy(blackBox = bundle.copy(syncedToDevice = true))
             }
         }

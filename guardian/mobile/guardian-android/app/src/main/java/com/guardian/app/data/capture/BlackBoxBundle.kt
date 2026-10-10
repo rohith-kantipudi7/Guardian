@@ -26,12 +26,19 @@ fun BlackBoxBundle.toTransferJson(
     smsSent: Int = 0,
     frames: Int = 0,
     mediaUrl: String? = null,
+    withThumbs: Boolean = true,
 ): String {
     val a = assessment
     val text = if (a != null) "${a.whatHappened} ${a.occupantState} ${a.recommendation}" else ""
     val images = listOfNotNull(cabinImagePath, roadImagePath).size
     val tx = (transcript ?: "").replace("\\", " ").replace("\"", "'").replace("\n", " ")
+    // Last frames travel inside the record so the device keeps them if the phone is lost.
+    val thumbs = if (withThumbs) {
+        """"thumbCabin":"${com.guardian.app.data.media.ThumbnailEncoder.encode(cabinImagePath)}",""" +
+            """"thumbRoad":"${com.guardian.app.data.media.ThumbnailEncoder.encode(roadImagePath)}","""
+    } else ""
     return """{"eventId":"${eventId ?: ""}","severity":"$severity","confidence":$confidence,""" +
+        thumbs +
         """"sensorLog":"$sensorLog","audioSec":$audioDurationSec,"preAudioSec":$preAudioDurationSec,""" +
         """"images":$images,"frames":$frames,"location":"${location ?: ""}","smsSent":$smsSent,""" +
         """"media":"${mediaUrl ?: ""}","transcript":"$tx","assessment":"$text"}"""

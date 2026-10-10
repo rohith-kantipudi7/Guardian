@@ -23,6 +23,7 @@ import SmsOutlined from '@mui/icons-material/SmsOutlined';
 import type { ReactNode } from 'react';
 import { KpiCard } from '../components/KpiCard';
 import { MapView, type MapMarker } from '../components/map/MapView';
+import { DispatchLog, IncidentTimeline, MediaGallery } from '../components/IncidentPanels';
 import { config } from '../config';
 import { useBackupAlert } from '../hooks/useBackupAlert';
 import { useBlackBox, useDeviceData, usePhoneData } from '../services/device';
@@ -209,6 +210,15 @@ export function ResponderOps() {
         </Card>
       </Box>
 
+      <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
+        <IncidentTimeline bb={bb} collision={active || (d?.count ?? 0) > 0} backupAlert={alert.active} />
+        <Stack spacing={2}>
+          <DispatchLog bb={bb} active={active} backupAlert={alert.active} />
+        </Stack>
+      </Box>
+
+      <MediaGallery bb={bb} />
+
       <Card>
         <CardContent>
           <Typography variant="overline" color="text.secondary">
@@ -216,7 +226,7 @@ export function ResponderOps() {
           </Typography>
           {coords ? (
             <Box sx={{ mt: 1 }}>
-              <MapView markers={markers} height={320} />
+              <MapView markers={markers} height={480} />
             </Box>
           ) : (
             <Typography color="text.secondary" sx={{ mt: 1 }}>

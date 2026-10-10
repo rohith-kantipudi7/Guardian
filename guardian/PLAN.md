@@ -134,20 +134,24 @@ Waiting on the buzzer component. Firmware driver + Copilot prompt are ready; wir
   + transfer JSON and shown on the dashboard. (Before‑impact is the same continuous rolling audio.)
 - Rolling **10‑minute** audio + photo buffer refreshes (override old with new).
 
-### 5. Capture images when the phone is disconnected — [ ]
-- Buffer the latest cabin/road frames on the phone and hand them to the IoT **before** loss; the
-  ESP32 has no camera, so the black box keeps the **last transferred frames**.
+### 5. Capture images when the phone is disconnected — [x]
+- The phone embeds ~2 KB thumbnails of the last cabin/road frames in every black‑box push (live + crash), so the
+  IoT device keeps them if the phone is lost; the dashboard falls back to them when the phone is unreachable.
+  If the device rejects the larger body the phone drops thumbnails automatically (the sketch's body limit is unverified).
 
 ### 6. Transfer actual images + audio (not just JSON) — [x]
 - Phone hosts the real media (port 8080: latest cabin/road JPEGs, after‑impact m4a); the dashboard
   loads it via the `media` URL carried in the black‑box JSON (live stills always, audio after a crash).
 
 ### 7. Multi‑transport: BLE + Wi‑Fi + SIM — [~]
-- **Wi‑Fi**: done. **BLE**: client exists, needs wiring to the sketch's GATT. **SIM**: none to test.
+- **Wi‑Fi**: done. **BLE**: now an automatic fallback for the black‑box transfer when Wi‑Fi fails (chunked GATT
+  write to the repo firmware's `BLACKBOX` characteristic); not verified on hardware — the live Wi‑Fi sketch has no BLE.
+  **SIM**: none to test.
 - IP‑range hardcoding is not ideal but **kept** for now (configurable default in Settings).
 
-### 8. In‑depth web UI — [~]
-- Richer showcase: per‑incident detail, live‑transfer timeline, media gallery, dispatch log, bigger map.
+### 8. In‑depth web UI — [x]
+- Responder ops now has a transfer timeline (first‑seen times), media gallery, dispatch log (real SMS vs simulated
+  calls) and a larger map.
 
 ### Housekeeping
 - [x] Removed the two Copilot meta files (`GUARDIAN_COPILOT_BUILD_SPEC.md`, `.github/copilot-instructions.md`)

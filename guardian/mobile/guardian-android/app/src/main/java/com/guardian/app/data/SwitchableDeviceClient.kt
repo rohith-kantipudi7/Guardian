@@ -23,6 +23,7 @@ class SwitchableDeviceClient(
     private val clients: Map<DeviceSource, GuardianDeviceClient>,
     initial: DeviceSource,
     scope: CoroutineScope,
+    private val backup: GuardianDeviceClient? = null,
 ) : GuardianDeviceClient {
 
     private val selected = MutableStateFlow(clients.getValue(initial))
@@ -51,6 +52,21 @@ class SwitchableDeviceClient(
     override fun connect() = selected.value.connect()
     override fun disconnect(userInitiated: Boolean) = selected.value.disconnect(userInitiated)
     override suspend fun send(command: DeviceCommand): Boolean = selected.value.send(command)
-    override suspend fun sendBlackBox(json: String): Boolean = selected.value.sendBlackBox(json)
+    /** Transport that carried the last black box: "Wi‑Fi", "BLE" or "none". */
+    @Volatile var lastTransport: String = "none"
+        private set
+
+    /** Wi‑Fi (selected client) first; if it fails, fall back to BLE so the record still reaches the device. */
+    override suspend fun sendBlackBox(json: String): Boolean {
+        if (selected.value.sendBlackBox(json)) {
+            lastTransport = "Wi‑Fi"
+            return true
+        }
+        val ble = backup?.takeIf { it !== selected.value } ?: run { lastTransport = "none"; return false }
+        if (ble.linkState.value == LinkState.DISCONNECTED) ble.connect() // scan runs in the background
+        val ok = ble.linkState.value == LinkState.CONNECTED && ble.sendBlackBox(json)
+        lastTransport = if (ok) "BLE" else "none"
+        return ok
+    }
     override suspend fun pushPhoneSignals(json: String): Boolean = selected.value.pushPhoneSignals(json)
 }

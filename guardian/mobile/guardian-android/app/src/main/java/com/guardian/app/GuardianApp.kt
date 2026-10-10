@@ -36,7 +36,9 @@ import kotlinx.coroutines.SupervisorJob
 class AppContainer(app: Application) {
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     val settings = SettingsStore(app)
+    private val bleClient = BleGuardianDeviceClient(app, scope)
     val device = SwitchableDeviceClient(
+        backup = bleClient,
         clients = mapOf(
             DeviceSource.NONE to NoDeviceClient(),
             DeviceSource.ESP32 to Esp32DeviceClient(
@@ -50,7 +52,7 @@ class AppContainer(app: Application) {
                 baseUrl = { settings.settings.value.backendUrl },
                 deviceId = { settings.settings.value.deviceId },
             ),
-            DeviceSource.BLE to BleGuardianDeviceClient(app, scope),
+            DeviceSource.BLE to bleClient,
             DeviceSource.MOCK to MockGuardianDeviceClient(scope),
         ),
         initial = settings.settings.value.deviceSource,
