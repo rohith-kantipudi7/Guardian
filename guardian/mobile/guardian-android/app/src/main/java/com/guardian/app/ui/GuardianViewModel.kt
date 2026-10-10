@@ -308,8 +308,11 @@ class GuardianViewModel(
                 assessment = assessment,
             )
             _alert.value = _alert.value?.copy(blackBox = bundle)
-            // Hand the black box to the vehicle device over BLE so it survives phone loss.
-            val json = bundle.toTransferJson(_alert.value?.eventId, r.severity.name, r.confidence)
+            // Hand the black box to the vehicle device over BLE/Wi-Fi so it survives phone loss.
+            // Mint a local id if the phone never got a backend/device one, so it's never empty.
+            val eventId = _alert.value?.eventId
+                ?: "PH-${settingsStore.settings.value.deviceId}-${System.currentTimeMillis()}"
+            val json = bundle.toTransferJson(eventId, r.severity.name, r.confidence)
             if (device.sendBlackBox(json)) {
                 _alert.value = _alert.value?.copy(blackBox = bundle.copy(syncedToDevice = true))
             }

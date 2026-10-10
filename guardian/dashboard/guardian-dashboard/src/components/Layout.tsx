@@ -26,7 +26,7 @@ import { useRealtime } from '../services/realtime';
 import { brandGradient, surfaces } from '../theme';
 
 const NAV = [
-  { to: '/', label: 'Live device', icon: <RouterOutlined />, end: true },
+  { to: '/', label: 'Live network', icon: <RouterOutlined />, end: true },
   { to: '/ops', label: 'Responder ops', icon: <DashboardOutlined /> },
   { to: '/incidents', label: 'Incident log', icon: <ListAltOutlined /> },
   { to: '/devices', label: 'Devices', icon: <RouterOutlined /> },

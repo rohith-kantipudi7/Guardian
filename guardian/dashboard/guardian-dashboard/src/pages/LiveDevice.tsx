@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import type { ReactNode } from 'react';
 import {
   Alert,
+  Avatar,
   Box,
-  Button,
   Card,
   CardContent,
   Chip,
@@ -12,11 +12,11 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  TextField,
   Typography,
 } from '@mui/material';
 import RouterOutlined from '@mui/icons-material/RouterOutlined';
 import SmartphoneOutlined from '@mui/icons-material/SmartphoneOutlined';
+import GroupsOutlined from '@mui/icons-material/GroupsOutlined';
 import WarningAmberOutlined from '@mui/icons-material/WarningAmberOutlined';
 import SensorsOutlined from '@mui/icons-material/SensorsOutlined';
 import { KpiCard } from '../components/KpiCard';
@@ -36,9 +36,41 @@ function Stat({ label, value }: Readonly<{ label: string; value: string }>) {
   );
 }
 
+function nodeState(online: boolean | null) {
+  if (online == null) return { color: 'text.disabled', text: 'Standby', chip: 'default' as const };
+  if (online) return { color: 'success.main', text: 'Online', chip: 'success' as const };
+  return { color: 'warning.main', text: 'Offline', chip: 'warning' as const };
+}
+
+function Node({
+  label,
+  sub,
+  online,
+  icon,
+}: Readonly<{ label: string; sub: string; online: boolean | null; icon: ReactNode }>) {
+  const st = nodeState(online);
+  return (
+    <Stack spacing={0.5} sx={{ alignItems: 'center', minWidth: 110 }}>
+      <Avatar sx={{ bgcolor: 'transparent', border: 2, borderColor: st.color, color: st.color, width: 48, height: 48 }}>
+        {icon}
+      </Avatar>
+      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+        {label}
+      </Typography>
+      <Typography variant="caption" color="text.secondary">
+        {sub}
+      </Typography>
+      <Chip size="small" label={st.text} variant="outlined" color={st.chip} sx={{ fontWeight: 700 }} />
+    </Stack>
+  );
+}
+
+function Link({ ok }: Readonly<{ ok: boolean }>) {
+  return <Box sx={{ flex: 1, height: 2, maxWidth: 90, bgcolor: ok ? 'success.main' : 'divider', borderRadius: 1 }} />;
+}
+
 export function LiveDevice() {
-  const [input, setInput] = useState(config.deviceUrl);
-  const [baseUrl, setBaseUrl] = useState(config.deviceUrl);
+  const baseUrl = config.deviceUrl;
 
   const data = useDeviceData(baseUrl);
   const phone = usePhoneData(baseUrl);
@@ -53,36 +85,31 @@ export function LiveDevice() {
   return (
     <Stack spacing={3}>
       <Box>
-        <Typography variant="h4">Live device</Typography>
+        <Typography variant="h4">Live network</Typography>
         <Typography color="text.secondary">
-          Real‑time feed straight from the Guardian IoT device — its own sensors and the phone it is paired with. No
-          backend, no simulator.
+          Real‑time feed from the Guardian network — the phone (primary) and the IoT device (backup). No backend, no
+          simulator.
         </Typography>
       </Box>
 
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} sx={{ alignItems: 'center' }}>
-        <TextField
-          size="small"
-          label="Device address"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          sx={{ minWidth: 320 }}
-        />
-        <Button variant="contained" onClick={() => setBaseUrl(input.replace(/\/$/, ''))}>
-          Connect
-        </Button>
-        <Chip
-          label={deviceOnline ? 'DEVICE ONLINE' : 'DEVICE OFFLINE'}
-          sx={{ fontWeight: 800, letterSpacing: 1 }}
-          color={deviceOnline ? 'success' : 'warning'}
-          variant="outlined"
-        />
-      </Stack>
+      <Card>
+        <CardContent>
+          <Typography variant="overline" color="text.secondary">
+            Network
+          </Typography>
+          <Stack direction="row" spacing={1} sx={{ mt: 1.5, alignItems: 'center', justifyContent: 'center' }}>
+            <Node label="Phone" sub="Primary" online={phoneOnline} icon={<SmartphoneOutlined />} />
+            <Link ok={phoneOnline && deviceOnline} />
+            <Node label="Guardian device" sub="Backup" online={deviceOnline} icon={<RouterOutlined />} />
+            <Link ok={false} />
+            <Node label="Responders" sub="Needs internet" online={null} icon={<GroupsOutlined />} />
+          </Stack>
+        </CardContent>
+      </Card>
 
       {data.isError && (
         <Alert severity="warning">
-          Can't reach the device at {baseUrl}. Make sure this machine is on the same Wi‑Fi/hotspot and the IP is
-          correct. ({(data.error as Error).message})
+          Can't reach the Guardian device. Make sure this machine is on the same Wi‑Fi/hotspot. ({(data.error as Error).message})
         </Alert>
       )}
 
