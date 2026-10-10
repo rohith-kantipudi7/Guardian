@@ -24,6 +24,7 @@ import { TransferVisual } from '../components/TransferVisual';
 import { CallVisual } from '../components/CallVisual';
 import { config } from '../config';
 import { useBackupAlert } from '../hooks/useBackupAlert';
+import { isCrashRecord, useCollision } from '../hooks/useCollision';
 import { useBlackBox, useDeviceData, usePhoneData } from '../services/device';
 
 function Stat({ label, value }: Readonly<{ label: string; value: string }>) {
@@ -88,8 +89,8 @@ export function LiveDevice() {
   const backupAlert = alert.active;
   // "Collision occurred" message the dashboard reacts to: a real transferred crash record, the
   // device's own IMU collision count, or an inferred backup alert. Drives the call + transfer below.
-  const crashRecord = !!bb && (bb.severity ?? '').toUpperCase() !== 'MONITORING' && bb.eventId !== 'LIVE';
-  const collision = crashRecord || (d?.count ?? 0) > 0 || backupAlert;
+  const crashRecord = isCrashRecord(bb);
+  const collision = useCollision(d, bb, backupAlert);
 
   return (
     <Stack spacing={3}>

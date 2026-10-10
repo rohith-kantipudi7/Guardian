@@ -26,6 +26,7 @@ import { MapView, type MapMarker } from '../components/map/MapView';
 import { DispatchLog, IncidentTimeline, MediaGallery } from '../components/IncidentPanels';
 import { config } from '../config';
 import { useBackupAlert } from '../hooks/useBackupAlert';
+import { useCollision } from '../hooks/useCollision';
 import { useBlackBox, useDeviceData, usePhoneData } from '../services/device';
 import type { Severity } from '../types';
 
@@ -86,7 +87,8 @@ export function ResponderOps() {
   const deviceOnline = !data.isError && !!d;
   const phoneOnline = !!p?.phoneOnline;
   const [alert, ackAlert] = useBackupAlert(d, p);
-  const active = alert.active || p?.state === 'EMERGENCY' || !!bb?.eventId;
+  const collision = useCollision(d, bb, alert.active);
+  const active = collision || p?.state === 'EMERGENCY';
   const coords = parseCoords(bb?.location);
   const markers: MapMarker[] = coords
     ? [
@@ -211,7 +213,7 @@ export function ResponderOps() {
       </Box>
 
       <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
-        <IncidentTimeline bb={bb} collision={active || (d?.count ?? 0) > 0} backupAlert={alert.active} />
+        <IncidentTimeline bb={bb} collision={collision} backupAlert={alert.active} />
         <Stack spacing={2}>
           <DispatchLog bb={bb} active={active} backupAlert={alert.active} />
         </Stack>
