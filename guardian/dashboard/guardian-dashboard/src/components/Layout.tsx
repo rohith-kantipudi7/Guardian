@@ -24,6 +24,7 @@ import { brandGradient, surfaces } from '../theme';
 
 const NAV = [
   { to: '/', label: 'Live network', icon: <RouterOutlined />, end: true },
+  { to: '/ops', label: 'Responder ops', icon: <ShieldOutlined /> },
   { to: '/about', label: 'How it works', icon: <InfoOutlined /> },
 ];
 

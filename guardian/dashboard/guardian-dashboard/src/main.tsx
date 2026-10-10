@@ -9,6 +9,7 @@ import { Devices } from './pages/Devices';
 import { History } from './pages/History';
 import { Incident } from './pages/Incident';
 import { LiveDevice } from './pages/LiveDevice';
+import { ResponderOps } from './pages/ResponderOps';
 import { LiveOps } from './pages/LiveOps';
 import { ResponderAlert } from './pages/ResponderAlert';
 import { Showcase } from './pages/Showcase';
@@ -29,7 +30,8 @@ const router = createBrowserRouter([
     ),
     children: [
       { path: '/', element: <LiveDevice /> },
-      { path: '/ops', element: <LiveOps /> },
+      { path: '/ops', element: <ResponderOps /> },
+      { path: '/ops-backend', element: <LiveOps /> },
       { path: '/showcase', element: <Showcase /> },
       { path: '/incidents', element: <History /> },
       { path: '/incidents/:id', element: <Incident /> },
