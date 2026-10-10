@@ -15,7 +15,6 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import DashboardOutlined from '@mui/icons-material/DashboardOutlined';
-import SlideshowOutlined from '@mui/icons-material/SlideshowOutlined';
 import ListAltOutlined from '@mui/icons-material/ListAltOutlined';
 import RouterOutlined from '@mui/icons-material/RouterOutlined';
 import DirectionsCarOutlined from '@mui/icons-material/DirectionsCarOutlined';
@@ -27,8 +26,8 @@ import { useRealtime } from '../services/realtime';
 import { brandGradient, surfaces } from '../theme';
 
 const NAV = [
-  { to: '/', label: 'Live monitor', icon: <DashboardOutlined />, end: true },
-  { to: '/showcase', label: 'Showcase', icon: <SlideshowOutlined /> },
+  { to: '/', label: 'Live device', icon: <RouterOutlined />, end: true },
+  { to: '/ops', label: 'Responder ops', icon: <DashboardOutlined /> },
   { to: '/incidents', label: 'Incident log', icon: <ListAltOutlined /> },
   { to: '/devices', label: 'Devices', icon: <RouterOutlined /> },
   { to: '/vehicles', label: 'Vehicles', icon: <DirectionsCarOutlined /> },
