@@ -244,6 +244,21 @@ class GuardianViewModel(
 
     /** The phone's own sensors detected a crash. Mobile is primary. */
     private fun onPhoneCrash(r: PhoneCrashResult) {
+        // A dropped phone or a small jolt is NOT an accident — record it as abnormal activity
+        // (a warning), never the full emergency with siren.
+        if (r.dropped || r.severity == Severity.MINOR) {
+            addAnomaly(
+                AnomalyEvent(
+                    AnomalyType.IMPACT,
+                    if (r.dropped) "Phone dropped · ${"%.1f".format(r.accelPeakG)} g (free-fall)"
+                    else "Minor impact · ${"%.1f".format(r.accelPeakG)} g",
+                    r.accelPeakG,
+                    System.currentTimeMillis(),
+                    critical = false,
+                ),
+            )
+            return
+        }
         _alert.value = EmergencyAlert(
             state = CrashState.EMERGENCY_ACTIVE,
             severity = r.severity,
