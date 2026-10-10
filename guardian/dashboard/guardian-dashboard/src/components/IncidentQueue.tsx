@@ -61,7 +61,7 @@ export function IncidentQueue({
                     size="small"
                     icon={<PhoneDisabledOutlined />}
                     label="No phone"
-                    sx={{ bgcolor: 'rgba(167,139,250,.15)', color: 'secondary.main' }}
+                    sx={{ bgcolor: 'rgba(82,97,122,.14)', color: 'secondary.main' }}
                   />
                 )}
               </Stack>

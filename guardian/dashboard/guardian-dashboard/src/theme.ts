@@ -1,37 +1,46 @@
 import { alpha, createTheme } from '@mui/material/styles';
 
-// Command-center dark palette. Deep navy base, cyan "online/tech" accent, vivid emergency rose.
-const bg = '#06090F';
-const paper = '#0E1420';
-const raised = '#151D2C';
-const line = '#233044';
+// Neumorphic light theme: one soft base colour, depth comes from paired light/dark shadows.
+const bg = '#E4E9F0';
+const paper = '#E4E9F0';
+const raised = '#E4E9F0';
+const line = '#CBD3DF';
+const shadowDark = '#B8C1D0';
+const shadowLight = '#FFFFFF';
 
-const primary = '#38BDF8';
-const violet = '#A78BFA';
-const danger = '#F43F5E';
-const amber = '#F59E0B';
-const green = '#22C55E';
+const primary = '#2563EB';
+const slate = '#52617A';
+const danger = '#D92D4A';
+const amber = '#B7791F';
+const green = '#1E8E4E';
+
+export const neu = {
+  raised: `6px 6px 14px ${shadowDark}, -6px -6px 14px ${shadowLight}`,
+  raisedSm: `3px 3px 8px ${shadowDark}, -3px -3px 8px ${shadowLight}`,
+  inset: `inset 3px 3px 7px ${shadowDark}, inset -3px -3px 7px ${shadowLight}`,
+  insetSm: `inset 2px 2px 4px ${shadowDark}, inset -2px -2px 4px ${shadowLight}`,
+};
 
 export const theme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: 'light',
     primary: { main: primary },
-    secondary: { main: violet },
+    secondary: { main: slate },
     error: { main: danger },
     warning: { main: amber },
     success: { main: green },
     info: { main: primary },
     background: { default: bg, paper },
     divider: line,
-    text: { primary: '#F1F5F9', secondary: '#94A3B8', disabled: '#5B6B82' },
+    text: { primary: '#1F2937', secondary: '#4B5870', disabled: '#8793A8' },
   },
   typography: {
     fontFamily: 'Inter, "Segoe UI", Roboto, system-ui, sans-serif',
-    h3: { fontWeight: 900, letterSpacing: -1 },
+    h3: { fontWeight: 800, letterSpacing: -1 },
     h4: { fontWeight: 800, letterSpacing: -0.5 },
     h5: { fontWeight: 800, letterSpacing: -0.3 },
     h6: { fontWeight: 700 },
-    overline: { fontWeight: 800, letterSpacing: 1.4, fontSize: 11 },
+    overline: { fontWeight: 700, letterSpacing: 1.2, fontSize: 11 },
     button: { textTransform: 'none', fontWeight: 700 },
   },
   shape: { borderRadius: 14 },
@@ -39,82 +48,79 @@ export const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         'html, body, #root': { height: '100%', overflow: 'hidden' },
-        body: {
-          overflowWrap: 'anywhere',
-          backgroundColor: bg,
-          backgroundImage: `radial-gradient(1200px 600px at 100% -10%, ${alpha(primary, 0.08)}, transparent 60%), radial-gradient(900px 520px at -10% 110%, ${alpha(violet, 0.07)}, transparent 55%)`,
-          backgroundAttachment: 'fixed',
-        },
-        '*': { scrollbarWidth: 'thin', scrollbarColor: `${line} transparent` },
+        body: { overflowWrap: 'anywhere', backgroundColor: bg },
+        '*': { scrollbarWidth: 'thin', scrollbarColor: `${shadowDark} transparent` },
         '*::-webkit-scrollbar': { width: 8, height: 8 },
-        '*::-webkit-scrollbar-thumb': { background: line, borderRadius: 8 },
+        '*::-webkit-scrollbar-thumb': { background: shadowDark, borderRadius: 4 },
         '*::-webkit-scrollbar-track': { background: 'transparent' },
         '@keyframes guardianPulse': {
-          '0%': { boxShadow: `0 0 0 0 ${alpha(green, 0.5)}` },
+          '0%': { boxShadow: `0 0 0 0 ${alpha(green, 0.45)}` },
           '70%': { boxShadow: `0 0 0 7px ${alpha(green, 0)}` },
           '100%': { boxShadow: `0 0 0 0 ${alpha(green, 0)}` },
         },
         '@keyframes guardianAlertPulse': {
-          '0%': { boxShadow: `0 0 0 0 ${alpha(danger, 0.5)}` },
+          '0%': { boxShadow: `0 0 0 0 ${alpha(danger, 0.45)}` },
           '70%': { boxShadow: `0 0 0 7px ${alpha(danger, 0)}` },
           '100%': { boxShadow: `0 0 0 0 ${alpha(danger, 0)}` },
         },
       },
     },
     MuiCard: {
-      defaultProps: { variant: 'outlined' },
+      defaultProps: { variant: 'elevation', elevation: 0 },
       styleOverrides: {
         root: {
-          backgroundImage: `linear-gradient(180deg, ${alpha('#FFFFFF', 0.025)}, transparent)`,
-          borderColor: line,
           backgroundColor: paper,
+          backgroundImage: 'none',
+          border: 'none',
           borderRadius: 16,
-          transition: 'border-color .2s ease, box-shadow .2s ease, transform .2s ease',
+          boxShadow: neu.raised,
         },
       },
     },
-    MuiPaper: { styleOverrides: { root: { backgroundImage: 'none' } } },
+    MuiPaper: {
+      styleOverrides: { root: { backgroundImage: 'none', backgroundColor: paper } },
+    },
     MuiChip: {
       styleOverrides: {
-        root: { fontWeight: 700, borderRadius: 8 },
+        root: { fontWeight: 700, borderRadius: 8, boxShadow: neu.insetSm },
         sizeSmall: { height: 22 },
-        outlined: { borderWidth: 1 },
+        outlined: { borderWidth: 0 },
       },
     },
     MuiButton: {
       defaultProps: { disableElevation: true },
-      styleOverrides: { root: { borderRadius: 10, paddingInline: 16 } },
+      styleOverrides: {
+        root: {
+          borderRadius: 10,
+          paddingInline: 16,
+          backgroundColor: bg,
+          color: '#1F2937',
+          boxShadow: neu.raisedSm,
+          border: 'none',
+          '&:hover': { backgroundColor: bg, boxShadow: neu.raised },
+          '&:active': { boxShadow: neu.insetSm },
+        },
+      },
       variants: [
-        {
-          props: { variant: 'contained', color: 'primary' },
-          style: {
-            backgroundImage: `linear-gradient(135deg, ${primary}, #0EA5E9)`,
-            color: '#001321',
-            '&:hover': { backgroundImage: `linear-gradient(135deg, #7DD3FC, ${primary})` },
-          },
-        },
-        {
-          props: { variant: 'contained', color: 'error' },
-          style: {
-            backgroundImage: `linear-gradient(135deg, ${danger}, #E11D48)`,
-            '&:hover': { backgroundImage: `linear-gradient(135deg, #FB7185, ${danger})` },
-          },
-        },
+        { props: { variant: 'contained', color: 'primary' }, style: { color: primary } },
+        { props: { variant: 'contained', color: 'error' }, style: { color: danger } },
+        { props: { variant: 'contained', color: 'success' }, style: { color: green } },
       ],
     },
     MuiTableCell: {
       styleOverrides: {
         root: { borderColor: line },
-        head: { color: '#94A3B8', fontWeight: 800, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.8 },
+        head: { color: '#4B5870', fontWeight: 800, textTransform: 'uppercase', fontSize: 11, letterSpacing: 0.8 },
       },
     },
+    MuiAlert: { styleOverrides: { root: { borderRadius: 12 } } },
     MuiTooltip: {
-      styleOverrides: { tooltip: { fontSize: 13, background: alpha('#0B1220', 0.96), border: `1px solid ${line}` } },
+      styleOverrides: { tooltip: { fontSize: 13, backgroundColor: '#1F2937', color: '#F8FAFC' } },
     },
-    MuiLinearProgress: { styleOverrides: { root: { borderRadius: 6, backgroundColor: raised, height: 6 } } },
+    MuiLinearProgress: {
+      styleOverrides: { root: { borderRadius: 6, backgroundColor: raised, height: 8, boxShadow: neu.insetSm } },
+    },
   },
 });
 
 export const surfaces = { bg, paper, line, raised };
-export const brandGradient = `linear-gradient(135deg, ${primary}, #818CF8)`;
-export const dangerGradient = `linear-gradient(135deg, ${danger}, #E11D48)`;

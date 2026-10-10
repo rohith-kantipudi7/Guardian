@@ -9,6 +9,7 @@ import { Devices } from './pages/Devices';
 import { History } from './pages/History';
 import { Incident } from './pages/Incident';
 import { LiveDevice } from './pages/LiveDevice';
+import { Privacy, Terms } from './pages/Legal';
 import { ResponderOps } from './pages/ResponderOps';
 import { LiveOps } from './pages/LiveOps';
 import { ResponderAlert } from './pages/ResponderAlert';
@@ -38,6 +39,8 @@ const router = createBrowserRouter([
       { path: '/devices', element: <Devices /> },
       { path: '/vehicles', element: <Vehicles /> },
       { path: '/about', element: <About /> },
+      { path: '/privacy', element: <Privacy /> },
+      { path: '/terms', element: <Terms /> },
     ],
   },
   // Opened by police / hospital / family from the alert SMS: no sidebar, no login.

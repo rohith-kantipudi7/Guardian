@@ -116,9 +116,9 @@ function BlackBox({ incident: c }: { incident: CrashEvent }) {
           sx={{
             p: 1.5,
             borderRadius: 1,
-            bgcolor: 'rgba(96,165,250,.12)',
+            bgcolor: 'rgba(37,99,235,.08)',
             border: '1px solid',
-            borderColor: 'rgba(96,165,250,.3)',
+            borderColor: 'rgba(37,99,235,.3)',
           }}
         >
           <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
@@ -193,7 +193,7 @@ export function IncidentDetail({ incident: c }: { incident: CrashEvent }) {
                     size="small"
                     icon={<MemoryOutlined />}
                     label="Alert sent by device black box"
-                    sx={{ bgcolor: 'rgba(167,139,250,.15)', color: 'secondary.main' }}
+                    sx={{ bgcolor: 'rgba(82,97,122,.14)', color: 'secondary.main' }}
                   />
                 )}
                 {c.alertSource === 'PHONE' && (
@@ -201,7 +201,7 @@ export function IncidentDetail({ incident: c }: { incident: CrashEvent }) {
                     size="small"
                     icon={<PhoneAndroidOutlined />}
                     label="Alert sent by phone"
-                    sx={{ bgcolor: 'rgba(52,211,153,.15)', color: 'success.main' }}
+                    sx={{ bgcolor: 'rgba(30,142,78,.14)', color: 'success.main' }}
                   />
                 )}
                 {c.alertSource === null && !c.phoneConnected && (
@@ -209,7 +209,7 @@ export function IncidentDetail({ incident: c }: { incident: CrashEvent }) {
                     size="small"
                     icon={<PhoneDisabledOutlined />}
                     label="No phone · sent by device"
-                    sx={{ bgcolor: 'rgba(167,139,250,.15)', color: 'secondary.main' }}
+                    sx={{ bgcolor: 'rgba(82,97,122,.14)', color: 'secondary.main' }}
                   />
                 )}
                 {!c.cellularConnected && (

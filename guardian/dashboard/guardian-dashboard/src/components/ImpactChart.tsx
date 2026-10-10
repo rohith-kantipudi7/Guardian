@@ -29,39 +29,39 @@ export function ImpactChart({ trace }: { trace: TracePoint[] }) {
     <Box>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Impact signal">
         {[0, 0.25, 0.5, 0.75, 1].map((f) => (
-          <line key={f} x1={PAD.l} x2={W - PAD.r} y1={yG(gMax * f)} y2={yG(gMax * f)} stroke="#1f2a3d" />
+          <line key={f} x1={PAD.l} x2={W - PAD.r} y1={yG(gMax * f)} y2={yG(gMax * f)} stroke="#CBD3DF" />
         ))}
         <line
           x1={PAD.l}
           x2={W - PAD.r}
           y1={yG(IMPACT_THRESHOLD_G)}
           y2={yG(IMPACT_THRESHOLD_G)}
-          stroke="#f59e0b"
+          stroke="#B7791F"
           strokeDasharray="6 4"
         />
-        <text x={W - PAD.r - 4} y={yG(IMPACT_THRESHOLD_G) - 4} fill="#f59e0b" fontSize="11" textAnchor="end">
+        <text x={W - PAD.r - 4} y={yG(IMPACT_THRESHOLD_G) - 4} fill="#B7791F" fontSize="11" textAnchor="end">
           impact trigger {IMPACT_THRESHOLD_G} g
         </text>
-        <path d={path((p) => p[2], yR)} fill="none" stroke="#a78bfa" strokeWidth="1.5" opacity={0.85} />
-        <path d={path((p) => p[1], yG)} fill="none" stroke="#ef4444" strokeWidth="2" />
-        <text x={4} y={PAD.t + 10} fill="#ef4444" fontSize="11">
+        <path d={path((p) => p[2], yR)} fill="none" stroke="#52617A" strokeWidth="1.5" opacity={0.85} />
+        <path d={path((p) => p[1], yG)} fill="none" stroke="#D92D4A" strokeWidth="2" />
+        <text x={4} y={PAD.t + 10} fill="#D92D4A" fontSize="11">
           {gMax.toFixed(0)} g
         </text>
-        <text x={W - 4} y={PAD.t + 10} fill="#a78bfa" fontSize="11" textAnchor="end">
+        <text x={W - 4} y={PAD.t + 10} fill="#52617A" fontSize="11" textAnchor="end">
           {rMax.toFixed(0)} rad/s
         </text>
-        <text x={PAD.l} y={H - 4} fill="#94a3b8" fontSize="11">
+        <text x={PAD.l} y={H - 4} fill="#4B5870" fontSize="11">
           0 s
         </text>
-        <text x={W - PAD.r} y={H - 4} fill="#94a3b8" fontSize="11" textAnchor="end">
+        <text x={W - PAD.r} y={H - 4} fill="#4B5870" fontSize="11" textAnchor="end">
           {(tMax / 1000).toFixed(1)} s
         </text>
       </svg>
       <Stack direction="row" spacing={2} sx={{ justifyContent: 'center' }}>
-        <Typography variant="caption" sx={{ color: '#ef4444' }}>
+        <Typography variant="caption" sx={{ color: '#D92D4A' }}>
           ━ acceleration (g)
         </Typography>
-        <Typography variant="caption" sx={{ color: '#a78bfa' }}>
+        <Typography variant="caption" sx={{ color: '#52617A' }}>
           ━ rotation (rad/s)
         </Typography>
       </Stack>

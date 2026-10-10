@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
 import { Box, Card, Stack, Typography } from '@mui/material';
+import { neu } from '../theme';
 
 const TONES = {
-  default: { color: 'primary.main', glow: 'rgba(56,189,248,.16)' },
-  danger: { color: 'error.main', glow: 'rgba(244,63,94,.18)' },
-  success: { color: 'success.main', glow: 'rgba(34,197,94,.16)' },
-  warning: { color: 'warning.main', glow: 'rgba(245,158,11,.16)' },
+  default: { color: 'primary.main' },
+  danger: { color: 'error.main' },
+  success: { color: 'success.main' },
+  warning: { color: 'warning.main' },
 } as const;
 
 export function KpiCard({
@@ -21,24 +22,9 @@ export function KpiCard({
   icon: ReactNode;
   tone?: 'default' | 'danger' | 'success' | 'warning';
 }) {
-  const { color, glow } = TONES[tone];
+  const { color } = TONES[tone];
   return (
-    <Card
-      sx={{
-        p: 2,
-        position: 'relative',
-        overflow: 'hidden',
-        '&:hover': { borderColor: color, transform: 'translateY(-2px)' },
-        '&::after': {
-          content: '""',
-          position: 'absolute',
-          inset: 0,
-          borderRadius: 'inherit',
-          background: `radial-gradient(120px 60px at 100% 0%, ${glow}, transparent 70%)`,
-          pointerEvents: 'none',
-        },
-      }}
-    >
+    <Card sx={{ p: 2 }}>
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
         <Box
           sx={{
@@ -47,7 +33,7 @@ export function KpiCard({
             flexShrink: 0,
             p: 0.75,
             borderRadius: 2,
-            bgcolor: glow,
+            boxShadow: neu.insetSm,
           }}
         >
           {icon}

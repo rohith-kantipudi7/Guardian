@@ -20,7 +20,7 @@ import ShieldOutlined from '@mui/icons-material/ShieldOutlined';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { formatPercent } from '../format';
 import { useRealtime } from '../services/realtime';
-import { brandGradient, surfaces } from '../theme';
+import { neu, surfaces } from '../theme';
 
 const NAV = [
   { to: '/', label: 'Live network', icon: <RouterOutlined />, end: true },
@@ -44,9 +44,9 @@ export function Layout() {
         sx={{
           width: compact ? RAIL : SIDEBAR,
           flexShrink: 0,
-          borderRight: 1,
-          borderColor: 'divider',
-          backgroundImage: `linear-gradient(180deg, ${surfaces.raised}, ${surfaces.paper} 42%)`,
+          bgcolor: surfaces.paper,
+          boxShadow: neu.raised,
+          zIndex: 1,
           position: 'sticky',
           top: 0,
           height: '100vh',
@@ -61,14 +61,10 @@ export function Layout() {
           sx={{ alignItems: 'center', justifyContent: compact ? 'center' : 'flex-start', px: compact ? 1 : 2.5, py: 2.5 }}
         >
           <Avatar
-            sx={{
-              backgroundImage: brandGradient,
-              width: 40,
-              height: 40,
-              boxShadow: '0 6px 20px rgba(56,189,248,.35)',
-            }}
+            variant="rounded"
+            sx={{ bgcolor: surfaces.paper, width: 40, height: 40, borderRadius: 2, boxShadow: neu.raisedSm }}
           >
-            <ShieldOutlined fontSize="small" sx={{ color: '#06121f' }} />
+            <ShieldOutlined fontSize="small" sx={{ color: 'primary.main' }} />
           </Avatar>
           {!compact && (
             <Box sx={{ minWidth: 0 }}>
@@ -77,10 +73,7 @@ export function Layout() {
                   fontWeight: 900,
                   letterSpacing: 3,
                   lineHeight: 1.1,
-                  backgroundImage: brandGradient,
-                  backgroundClip: 'text',
-                  WebkitBackgroundClip: 'text',
-                  color: 'transparent',
+                  color: 'text.primary',
                 }}
               >
                 GUARDIAN
@@ -101,9 +94,7 @@ export function Layout() {
                 fontWeight: 800,
                 letterSpacing: 1,
                 color: connected ? 'success.main' : 'warning.main',
-                bgcolor: connected ? 'rgba(34,197,94,.14)' : 'rgba(245,158,11,.14)',
-                border: 1,
-                borderColor: connected ? 'rgba(34,197,94,.4)' : 'rgba(245,158,11,.4)',
+                bgcolor: 'transparent',
               }}
             />
           </Box>
@@ -125,20 +116,11 @@ export function Layout() {
                   justifyContent: compact ? 'center' : 'flex-start',
                   color: 'text.secondary',
                   transition: 'background-color .18s ease, color .18s ease',
-                  '&:hover': { bgcolor: 'rgba(148,163,184,.08)', color: 'text.primary' },
+                  '&:hover': { bgcolor: 'transparent', boxShadow: neu.raisedSm, color: 'text.primary' },
                   '&.active': {
-                    bgcolor: 'rgba(56,189,248,.12)',
+                    bgcolor: 'transparent',
+                    boxShadow: neu.insetSm,
                     color: 'primary.main',
-                    '&::before': {
-                      content: '""',
-                      position: 'absolute',
-                      left: 4,
-                      top: 10,
-                      bottom: 10,
-                      width: 3,
-                      borderRadius: 3,
-                      backgroundImage: brandGradient,
-                    },
                   },
                   '&.active .MuiListItemIcon-root': { color: 'primary.main' },
                 }}
@@ -178,6 +160,14 @@ export function Layout() {
               Demo monitor · read-only
             </Typography>
           )}
+          <Stack direction={compact ? 'column' : 'row'} spacing={1.5} sx={{ mt: 1, alignItems: compact ? 'center' : 'flex-start' }}>
+            <Typography component={NavLink} to="/privacy" variant="caption" color="text.secondary" sx={{ textDecoration: 'none', color: 'text.secondary', '&:hover': { color: 'primary.main' } }}>
+              Privacy
+            </Typography>
+            <Typography component={NavLink} to="/terms" variant="caption" color="text.secondary" sx={{ textDecoration: 'none', color: 'text.secondary', '&:hover': { color: 'primary.main' } }}>
+              Terms
+            </Typography>
+          </Stack>
         </Box>
       </Box>
 
