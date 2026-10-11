@@ -118,6 +118,8 @@ class GuardianViewModel(
     val message: StateFlow<String?> = _message.asStateFlow()
 
     init {
+        callDispatcher.onImSafe = { imSafe() }
+        callDispatcher.locationText = { phoneLocation.lastKnown() }
         viewModelScope.launch {
             settings.map { it.vehicleName to it.backendUrl }.distinctUntilChanged().collect { (_, url) ->
                 callDispatcher.prepareVoice(callMessage(settings.value), url)
@@ -347,8 +349,11 @@ class GuardianViewModel(
             return
         }
         val delayMs = settings.value.alertDelaySec * 1000L
+        val fix = phoneLocation.lastKnown()?.split(",")
         _alert.value = EmergencyAlert(
             state = CrashState.VERIFYING,
+            latitude = fix?.getOrNull(0)?.toDoubleOrNull(),
+            longitude = fix?.getOrNull(1)?.toDoubleOrNull(),
             severity = r.severity,
             confidence = r.confidence,
             verifyRemainingMs = delayMs,

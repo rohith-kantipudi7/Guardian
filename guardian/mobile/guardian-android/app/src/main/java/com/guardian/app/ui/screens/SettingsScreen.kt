@@ -39,6 +39,7 @@ import com.guardian.app.ui.theme.Muted
 
 @Composable
 fun SettingsScreen(vm: GuardianViewModel, onPair: () -> Unit) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     val s by vm.settings.collectAsStateWithLifecycle()
     val link by vm.link.collectAsStateWithLifecycle()
     var backendUrl by remember(s.backendUrl) { mutableStateOf(s.backendUrl) }
@@ -155,6 +156,14 @@ fun SettingsScreen(vm: GuardianViewModel, onPair: () -> Unit) {
         SectionCard("App") {
             ToggleRow("Crash alert notifications", s.notifications) { v -> vm.updateSettings { it.copy(notifications = v) } }
             ToggleRow("Show device test controls (demo)", s.demoMode) { v -> vm.updateSettings { it.copy(demoMode = v) } }
+            TextButton(onClick = {
+                ctx.startActivity(
+                    android.content.Intent(
+                        android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        android.net.Uri.parse("package:${ctx.packageName}"),
+                    ).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
+                )
+            }) { Text("Allow Guardian to show over calls") }
             TextButton(onClick = { vm.clearHistory() }) { Text("Clear local history") }
         }
         Spacer(Modifier.height(8.dp))
