@@ -422,7 +422,6 @@ class GuardianViewModel(
                 transcript = null,
                 assessment = null,
             )
-            _alert.value = _alert.value?.copy(blackBox = photoOnly)
             // Then a proper burst from both cameras, filled in as soon as it finishes.
             val burst = async { dualCameraCapture.captureBurst(CRASH_SHOTS) }
             launch {
