@@ -195,7 +195,13 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
             }
         }
 
+        val demoState = androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
         if (settings.demoMode) {
+            TextButton(onClick = { demoState.value = !demoState.value }, modifier = Modifier.fillMaxWidth()) {
+                Text(if (demoState.value) "Hide demo tools" else "Show demo tools", color = Muted)
+            }
+        }
+        if (settings.demoMode && demoState.value) {
             SectionCard("Black-box capture · demo (temporary)") {
                 Text(
                     "Opens both cameras + the mic now and records voice before and after — the real crash pipeline, no impact needed.",

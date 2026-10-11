@@ -46,7 +46,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import com.guardian.app.data.alert.CallEntry
 import com.guardian.app.data.alert.CallStatus
-import com.guardian.app.ui.components.shareToWhatsApp
 import com.guardian.app.domain.CrashState
 import com.guardian.app.ui.EmergencyAlert
 import com.guardian.app.ui.components.CaptureEvidence
@@ -219,9 +218,6 @@ private fun CallingList(calls: List<CallEntry>, shareText: String, photos: List<
                 if (c.status == CallStatus.CALLING) {
                     Spacer(Modifier.width(8.dp))
                     Box(Modifier.size(10.dp).scale(ring).background(Critical, CircleShape))
-                }
-                TextButton(onClick = { shareToWhatsApp(context, c.number, shareText, photos) }) {
-                    Text("WhatsApp", color = Ok, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                 }
             }
         }
