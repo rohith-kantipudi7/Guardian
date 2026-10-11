@@ -228,6 +228,11 @@ fun DashboardScreen(vm: GuardianViewModel, onPair: () -> Unit, onOpenHistory: ()
                     )
                     TextButton(onClick = { vm.clearDemoCapture() }) { Text("Clear") }
                 }
+                Button(
+                    onClick = { vm.simulatePhoneCrash() },
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(containerColor = Critical),
+                ) { Text("Simulate phone crash", fontWeight = FontWeight.Bold) }
                 OutlinedButton(onClick = { vm.sendBlackBoxToDevice() }, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Rounded.Send, null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
