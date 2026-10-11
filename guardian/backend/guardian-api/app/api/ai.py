@@ -11,7 +11,7 @@ import json
 import logging
 
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from pydantic import BaseModel, Field
 
 from app.config import get_settings
@@ -33,6 +33,10 @@ class AssessRequest(BaseModel):
     image_count: int = Field(default=0, alias="imageCount")
 
     model_config = {"populate_by_name": True}
+
+
+class SpeakRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=500)
 
 
 class AssessResponse(BaseModel):
@@ -69,6 +73,33 @@ def _user_prompt(body: AssessRequest) -> str:
     if body.transcript:
         parts.append(f"cabin_transcript={body.transcript!r}")
     return "Crash signals: " + ", ".join(parts)
+
+
+@router.post("/speak")
+async def speak(body: SpeakRequest) -> Response:
+    """Synthesises the call message to MP3 so the phone can cache it and play it with no network at crash time."""
+    s = get_settings()
+    if not (s.azure_tts_endpoint and s.azure_tts_api_key):
+        raise HTTPException(status_code=503, detail="Text-to-speech is not configured")
+    url = (
+        f"{s.azure_tts_endpoint.rstrip('/')}/openai/deployments/{s.azure_tts_deployment}/audio/speech"
+        f"?api-version={s.azure_tts_api_version}"
+    )
+    payload = {
+        "model": s.azure_tts_deployment,
+        "input": body.text,
+        "voice": "alloy",
+        "response_format": "mp3",
+        "instructions": "Speak calmly, clearly and slowly, like an emergency notification.",
+    }
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.post(url, headers={"api-key": s.azure_tts_api_key}, json=payload)
+            resp.raise_for_status()
+    except httpx.HTTPError as exc:
+        log.warning("TTS call failed: %s", exc)
+        raise HTTPException(status_code=502, detail="Text-to-speech request failed") from exc
+    return Response(content=resp.content, media_type="audio/mpeg")
 
 
 @router.post("/assess", response_model=AssessResponse, response_model_by_alias=True)

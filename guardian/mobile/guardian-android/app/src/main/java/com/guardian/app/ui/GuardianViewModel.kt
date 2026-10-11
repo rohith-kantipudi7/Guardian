@@ -40,6 +40,8 @@ import com.guardian.app.data.capture.DualPhotos
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -115,6 +117,11 @@ class GuardianViewModel(
     val message: StateFlow<String?> = _message.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            settings.map { it.vehicleName to it.backendUrl }.distinctUntilChanged().collect { (_, url) ->
+                callDispatcher.prepareVoice(callMessage(settings.value), url)
+            }
+        }
         viewModelScope.launch { device.crashStatus.collect { it?.let(::onCrashStatus) } }
         viewModelScope.launch { device.events.collect(::onDeviceEvent) }
         viewModelScope.launch { repo.liveCrashes.collect(::onLiveCrash) }
@@ -465,8 +472,7 @@ class GuardianViewModel(
         _alert.value = a.copy(shareText = "GUARDIAN alert: collision detected on ${s.vehicleName} (${s.vehicleRegistration}). Location: $where")
         callDispatcher.start(
             s.contacts,
-            "This is an automatic Guardian alert. A collision was detected in ${s.vehicleName}. " +
-                "Please check your messages for the map link and call emergency services.",
+            callMessage(s),
             dialServices = !s.demoMode,
         ) { list -> _alert.value = _alert.value?.copy(calls = list) }
     }
@@ -474,6 +480,10 @@ class GuardianViewModel(
     private companion object {
         const val CRASH_SHOTS = 5
     }
+
+    private fun callMessage(s: AppSettings) =
+        "This is an automatic Guardian alert. A collision was detected in ${s.vehicleName}. " +
+            "Please check your messages for the map link and call emergency services."
 
     fun imSafe() = viewModelScope.launch {
         alarmSiren?.stop()

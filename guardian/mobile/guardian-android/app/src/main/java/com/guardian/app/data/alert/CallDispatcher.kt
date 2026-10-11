@@ -16,6 +16,10 @@ import android.telephony.TelephonyCallback
 import android.telephony.TelephonyManager
 import androidx.core.content.ContextCompat
 import com.guardian.app.data.settings.EmergencyContact
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 
 enum class CallStatus { QUEUED, CALLING, DONE, FAILED, TEST_ONLY }
 
@@ -73,13 +77,37 @@ class CallDispatcher(private val context: Context) {
         entries = emptyList()
     }
 
+    /** Downloads the message as Azure-synthesised speech via the backend so it plays offline later; best effort. */
+    suspend fun prepareVoice(message: String, backendUrl: String) = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+        val file = voiceFile(message)
+        if (file.exists()) return@withContext
+        runCatching {
+            val body = org.json.JSONObject().put("text", message).toString()
+                .toRequestBody("application/json".toMediaType())
+            val req = Request.Builder().url(backendUrl.trimEnd('/') + "/api/ai/speak").post(body).build()
+            http.newCall(req).execute().use { r ->
+                if (!r.isSuccessful) error("TTS HTTP ${r.code}")
+                file.writeBytes(r.body!!.bytes())
+            }
+        }
+    }
+
+    private fun voiceFile(message: String) =
+        java.io.File(context.cacheDir, "call_voice_${message.hashCode().toUInt()}.mp3")
+
+    private val http = OkHttpClient.Builder().callTimeout(40, java.util.concurrent.TimeUnit.SECONDS).build()
+    private var player: android.media.MediaPlayer? = null
+
     /** There is no API to know when the callee picks up, so the message starts after a delay and repeats. */
     private fun scheduleSpeech() {
         handler.postDelayed({
-            if (!active || !ttsReady || message.isBlank()) return@postDelayed
+            if (!active || message.isBlank()) return@postDelayed
             val audio = context.getSystemService(AudioManager::class.java)
             @Suppress("DEPRECATION")
             audio.isSpeakerphoneOn = true
+            val cached = voiceFile(message)
+            if (cached.exists() && playCached(cached)) return@postDelayed
+            if (!ttsReady) return@postDelayed
             val params = Bundle().apply { putInt(TextToSpeech.Engine.KEY_PARAM_STREAM, AudioManager.STREAM_VOICE_CALL) }
             tts?.speak(message, TextToSpeech.QUEUE_FLUSH, params, "alert1")
             tts?.playSilentUtterance(1500, TextToSpeech.QUEUE_ADD, "gap")
@@ -87,9 +115,27 @@ class CallDispatcher(private val context: Context) {
         }, SPEAK_DELAY_MS)
     }
 
+    private fun playCached(file: java.io.File, repeat: Int = 1): Boolean = runCatching {
+        player?.release()
+        player = android.media.MediaPlayer().apply {
+            setAudioAttributes(
+                android.media.AudioAttributes.Builder()
+                    .setUsage(android.media.AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                    .setContentType(android.media.AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build(),
+            )
+            setDataSource(file.absolutePath)
+            prepare()
+            setOnCompletionListener { if (repeat > 0 && active) { it.seekTo(0); it.start(); setOnCompletionListener(null) } }
+            start()
+        }
+    }.isSuccess
+
     private fun cancelSpeech() {
         handler.removeCallbacksAndMessages(null)
         tts?.stop()
+        runCatching { player?.release() }
+        player = null
     }
 
     private fun setStatus(i: Int, s: CallStatus) {

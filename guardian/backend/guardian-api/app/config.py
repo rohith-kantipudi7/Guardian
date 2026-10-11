@@ -34,6 +34,12 @@ class Settings(BaseSettings):
     azure_openai_deployment: str = ""
     azure_openai_api_version: str = "2024-06-01"
 
+    # Azure OpenAI text-to-speech for the spoken emergency call message.
+    azure_tts_endpoint: str = ""
+    azure_tts_api_key: str = ""
+    azure_tts_deployment: str = "gpt-4o-mini-tts"
+    azure_tts_api_version: str = "2025-03-01-preview"
+
     @property
     def ai_configured(self) -> bool:
         return bool(self.azure_openai_endpoint and self.azure_openai_api_key and self.azure_openai_deployment)
