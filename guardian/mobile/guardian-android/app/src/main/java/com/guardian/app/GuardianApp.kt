@@ -63,6 +63,7 @@ class AppContainer(app: Application) {
     val notifier = AlertNotifier(app)
     val alarmSiren = AlarmSiren(app)
     val smsDispatcher = SmsDispatcher(app)
+    val callDispatcher = com.guardian.app.data.alert.CallDispatcher(app)
     val phoneLocation = PhoneLocation(app)
     // Mobile is primary: the phone's own IMU runs crash detection.
     val phoneSensing = PhoneSensing(app).also { it.start() }

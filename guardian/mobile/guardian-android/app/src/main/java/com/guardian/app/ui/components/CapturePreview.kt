@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.NoPhotography
@@ -52,14 +54,29 @@ fun CaptureEvidence(
     accent: Color = MaterialTheme.colorScheme.primary,
     preAudioPath: String? = null,
     preAudioDurationSec: Int = 0,
+    cabinAll: List<String> = emptyList(),
+    roadAll: List<String> = emptyList(),
 ) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        if (cabinAll.size > 1 || roadAll.size > 1) {
+            PhotoStrip("Cabin", cabinAll)
+            PhotoStrip("Road", roadAll)
+        } else Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             FilePhoto(cabinPath, "Cabin", Modifier.weight(1f))
             FilePhoto(roadPath, "Road", Modifier.weight(1f))
         }
         if (preAudioPath != null) AudioPlayback("Before impact", preAudioPath, preAudioDurationSec, accent)
         if (audioPath != null) AudioPlayback("After impact", audioPath, audioDurationSec, accent)
+    }
+}
+
+@Composable
+private fun PhotoStrip(label: String, paths: List<String>) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text("${label.uppercase()} · ${paths.size} photos", color = Muted, fontSize = 10.sp, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+        Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            paths.forEachIndexed { i, p -> FilePhoto(p, "${label} ${i + 1}", Modifier.width(132.dp)) }
+        }
     }
 }
 

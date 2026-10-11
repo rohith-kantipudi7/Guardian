@@ -35,6 +35,8 @@ import com.guardian.app.domain.Responder
 import com.guardian.app.domain.Severity
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.async
+import com.guardian.app.data.capture.DualPhotos
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -57,6 +59,8 @@ data class EmergencyAlert(
     val aiAssessment: AiAssessment? = null,
     val blackBox: BlackBoxBundle? = null,
     val dispatches: List<AlertDispatch> = emptyList(),
+    val calls: List<com.guardian.app.data.alert.CallEntry> = emptyList(),
+    val shareText: String = "",
 )
 
 class GuardianViewModel(
@@ -71,6 +75,7 @@ class GuardianViewModel(
     private val continuousBlackBox: ContinuousBlackBox,
     private val alarmSiren: AlarmSiren?,
     private val smsDispatcher: SmsDispatcher,
+    private val callDispatcher: com.guardian.app.data.alert.CallDispatcher,
     private val phoneLocation: PhoneLocation,
     private val whisper: WhisperTranscriber,
     private val mediaServer: com.guardian.app.data.media.MediaServer,
@@ -257,6 +262,7 @@ class GuardianViewModel(
             current != null && current.eventId == e.eventId && closed -> {
                 _alert.value = null
                 alarmSiren?.stop()
+                callDispatcher.stop()
                 _message.value = if (e.status == "RESOLVED") "Incident closed" else "Incident cancelled - responders stood down"
             }
             current != null && (current.eventId == e.eventId || (current.eventId == null && c.type == "CRASH_DETECTED")) ->
@@ -301,6 +307,7 @@ class GuardianViewModel(
                 notifier?.crash("COLLISION DETECTED", "Tap to respond")
             }
             if (startedNew) alarmSiren?.start()
+            if (c.state == CrashState.EMERGENCY_ACTIVE) startCalls()
         } else if (current != null) {
             _alert.value = current.copy(state = c.state)
         }
@@ -339,6 +346,7 @@ class GuardianViewModel(
             startedAtMs = System.currentTimeMillis(),
         )
         alarmSiren?.start()
+        startCalls()
         addAnomaly(
             AnomalyEvent(
                 AnomalyType.CRASH,
@@ -384,6 +392,12 @@ class GuardianViewModel(
                 assessment = null,
             )
             _alert.value = _alert.value?.copy(blackBox = photoOnly)
+            // Then a proper burst from both cameras, filled in as soon as it finishes.
+            val burst = async { dualCameraCapture.captureBurst(CRASH_SHOTS) }
+            launch {
+                val b = burst.await()
+                _alert.value = _alert.value?.copy(blackBox = (_alert.value?.blackBox ?: photoOnly).withShots(b))
+            }
             val assessment = onDeviceAi.assess(
                 CrashContext(
                     severity = r.severity,
@@ -403,7 +417,7 @@ class GuardianViewModel(
             val audio = conversationCapture.captureAroundCrash()
             // On-device transcription of the in-cabin audio (whisper.cpp; null until the model ships).
             val transcript = whisper.transcribe(audio.postPath)
-            val bundle = photoOnly.copy(
+            val bundle = photoOnly.withShots(burst.await()).copy(
                 audioPath = audio.postPath,
                 audioDurationSec = audio.postDurationSec,
                 preAudioPath = audio.prePath,
@@ -435,8 +449,30 @@ class GuardianViewModel(
 
     fun simulatePhoneCrash() = sensing.simulateCrash()
 
+    private fun BlackBoxBundle.withShots(b: DualPhotos) = if (b.cabinAll.isEmpty() && b.roadAll.isEmpty()) this else copy(
+        cabinImagePath = b.cabinPath ?: cabinImagePath,
+        roadImagePath = b.roadPath ?: roadImagePath,
+        cabinImages = b.cabinAll,
+        roadImages = b.roadAll,
+    )
+
+    /** Dials the emergency contacts over the SIM, one after another, once per alert. */
+    private fun startCalls() {
+        val a = _alert.value ?: return
+        if (a.calls.isNotEmpty()) return
+        val s = settings.value
+        val where = phoneLocation.lastKnown()?.let { "https://maps.google.com/?q=$it" } ?: "location unavailable"
+        _alert.value = a.copy(shareText = "GUARDIAN alert: collision detected on ${s.vehicleName} (${s.vehicleRegistration}). Location: $where")
+        callDispatcher.start(s.contacts) { list -> _alert.value = _alert.value?.copy(calls = list) }
+    }
+
+    private companion object {
+        const val CRASH_SHOTS = 5
+    }
+
     fun imSafe() = viewModelScope.launch {
         alarmSiren?.stop()
+        callDispatcher.stop()
         crashStored = false
         val result = repo.cancelEmergency(_alert.value?.eventId)
         _message.value = "I'M SAFE: $result"

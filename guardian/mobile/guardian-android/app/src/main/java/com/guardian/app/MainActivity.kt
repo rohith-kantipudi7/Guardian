@@ -22,7 +22,7 @@ class MainActivity : ComponentActivity() {
 
     private val vm: GuardianViewModel by viewModels {
         viewModelFactory {
-            initializer { GuardianViewModel(container.repository, container.device, container.settings, container.notifier, container.phoneSensing, container.onDeviceAi, container.conversationCapture, container.dualCameraCapture, container.continuousBlackBox, container.alarmSiren, container.smsDispatcher, container.phoneLocation, container.whisper, container.mediaServer) }
+            initializer { GuardianViewModel(container.repository, container.device, container.settings, container.notifier, container.phoneSensing, container.onDeviceAi, container.conversationCapture, container.dualCameraCapture, container.continuousBlackBox, container.alarmSiren, container.smsDispatcher, container.callDispatcher, container.phoneLocation, container.whisper, container.mediaServer) }
         }
     }
 
@@ -56,6 +56,8 @@ class MainActivity : ComponentActivity() {
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.CAMERA,
             Manifest.permission.SEND_SMS,
+            Manifest.permission.CALL_PHONE,
+            Manifest.permission.READ_PHONE_STATE,
             Manifest.permission.ACCESS_FINE_LOCATION,
         ).filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
         if (media.isNotEmpty()) audioPermissionLauncher.launch(media.toTypedArray()) else startGuardianService()

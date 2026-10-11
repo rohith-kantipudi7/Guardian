@@ -43,6 +43,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import com.guardian.app.data.alert.CallEntry
+import com.guardian.app.data.alert.CallStatus
+import com.guardian.app.ui.components.shareToWhatsApp
 import com.guardian.app.domain.CrashState
 import com.guardian.app.ui.EmergencyAlert
 import com.guardian.app.ui.components.CaptureEvidence
@@ -136,6 +140,8 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
                     accent = Ok,
                     preAudioPath = bb.preAudioPath,
                     preAudioDurationSec = bb.preAudioDurationSec,
+                    cabinAll = bb.cabinImages,
+                    roadAll = bb.roadImages,
                 )
             }
         } else if (alert.state == CrashState.EMERGENCY_ACTIVE) {
@@ -146,9 +152,11 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
             }
         }
 
-        // 3. Calling the three contacts
+        // 3. Calling the emergency contacts
         if (alert.state == CrashState.EMERGENCY_ACTIVE) {
-            CallingList()
+            val photos = (bb?.cabinImages.orEmpty() + bb?.roadImages.orEmpty())
+                .ifEmpty { listOfNotNull(bb?.cabinImagePath, bb?.roadImagePath) }
+            CallingList(alert.calls, alert.shareText, photos)
         }
 
         // 4. I'm safe
@@ -182,7 +190,8 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
 }
 
 @Composable
-private fun CallingList() {
+private fun CallingList(calls: List<CallEntry>, shareText: String, photos: List<String>) {
+    val context = LocalContext.current
     val ring by rememberInfiniteTransition(label = "ring").animateFloat(
         initialValue = 0.4f,
         targetValue = 1f,
@@ -191,10 +200,29 @@ private fun CallingList() {
     )
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text("CALLING", color = Critical, fontSize = Label, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
-        listOf("Police" to "112", "Ambulance" to "108", "Family" to "Emergency contact").forEach { (label, number) ->
-            Row(Modifier.fillMaxWidth().neu(16.dp, 3.dp).padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("$label · $number", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp, modifier = Modifier.weight(1f))
-                Box(Modifier.size(10.dp).scale(ring).background(Critical, CircleShape))
+        if (calls.isEmpty()) {
+            Text("No emergency contacts saved. Add them in Settings.", color = Muted, fontSize = 13.sp)
+        }
+        calls.forEach { c ->
+            Row(Modifier.fillMaxWidth().neu(16.dp, 3.dp).padding(start = 14.dp, top = 6.dp, bottom = 6.dp, end = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text(c.label, color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(c.number, color = Muted, fontSize = 12.sp)
+                }
+                val (text, tone) = when (c.status) {
+                    CallStatus.QUEUED -> "Queued" to Muted
+                    CallStatus.CALLING -> "Calling" to Critical
+                    CallStatus.DONE -> "Called" to Ok
+                    CallStatus.FAILED -> "Failed" to Warn
+                }
+                Text(text, color = tone, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                if (c.status == CallStatus.CALLING) {
+                    Spacer(Modifier.width(8.dp))
+                    Box(Modifier.size(10.dp).scale(ring).background(Critical, CircleShape))
+                }
+                TextButton(onClick = { shareToWhatsApp(context, c.number, shareText, photos) }) {
+                    Text("WhatsApp", color = Ok, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                }
             }
         }
     }

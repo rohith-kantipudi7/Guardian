@@ -10,6 +10,10 @@ enum class AnomalyType(val label: String) {
     CRASH("Crash detected"),
     DEVICE_OFFLINE("Device offline"),
     SOS("Manual SOS"),
+    HARSH_CORNERING("Harsh cornering"),
+    ROLLOVER_RISK("Spin / rollover risk"),
+    ROUGH_ROAD("Rough road"),
+    FREE_FALL("Free-fall / airborne"),
 }
 
 /** One abnormal action, shown in the activity feed instead of a plain history list. */
@@ -32,21 +36,39 @@ class DrivingAnomalyDetector(
     private val swerveRotationRadS: Double = 1.8,
     private val crashJoltG: Double = 3.5,
     private val debounceMs: Long = 4000,
+    private val rolloverRotationRadS: Double = 4.0,
+    private val corneringRotationRadS: Double = 1.0,
+    private val freeFallG: Double = 0.3,
+    private val bumpJoltG: Double = 0.4,
 ) {
     private var lastEmitMs = 0L
+    private val bumpTimes = ArrayDeque<Long>()
 
     /** Returns an anomaly for this sample, or null. [accelG] includes gravity; [rotationRadS] rad/s. */
     fun sample(accelG: Double, rotationRadS: Double, now: Long): AnomalyEvent? {
         if (now - lastEmitMs < debounceMs) return null
         val jolt = abs(accelG - 1.0)
         if (jolt >= crashJoltG) return null // a crash, not a sub-crash anomaly
+        // Repeated small jolts in a few seconds mean a rough road rather than one event.
+        if (jolt in bumpJoltG..hardBrakeJoltG) {
+            bumpTimes.addLast(now)
+            while (bumpTimes.isNotEmpty() && now - bumpTimes.first() > 5000) bumpTimes.removeFirst()
+        }
         val event = when {
+            rotationRadS >= rolloverRotationRadS ->
+                AnomalyEvent(AnomalyType.ROLLOVER_RISK, "${"%.1f".format(rotationRadS)} rad/s spin", rotationRadS, now)
+            accelG < freeFallG ->
+                AnomalyEvent(AnomalyType.FREE_FALL, "${"%.2f".format(accelG)} g (weightless)", accelG, now)
             jolt >= impactJoltG ->
                 AnomalyEvent(AnomalyType.IMPACT, "${"%.1f".format(jolt + 1.0)} g jolt", jolt, now)
             rotationRadS >= swerveRotationRadS && jolt >= 0.5 ->
                 AnomalyEvent(AnomalyType.SHARP_SWERVE, "${"%.1f".format(rotationRadS)} rad/s turn", rotationRadS, now)
             jolt >= hardBrakeJoltG ->
                 AnomalyEvent(AnomalyType.HARD_BRAKE, "${"%.1f".format(jolt)} g deceleration", jolt, now)
+            rotationRadS >= corneringRotationRadS && jolt >= 0.3 ->
+                AnomalyEvent(AnomalyType.HARSH_CORNERING, "${"%.1f".format(rotationRadS)} rad/s corner", rotationRadS, now)
+            bumpTimes.size >= 3 ->
+                AnomalyEvent(AnomalyType.ROUGH_ROAD, "${bumpTimes.size} bumps in 5s", jolt, now).also { bumpTimes.clear() }
             else -> null
         } ?: return null
         lastEmitMs = now

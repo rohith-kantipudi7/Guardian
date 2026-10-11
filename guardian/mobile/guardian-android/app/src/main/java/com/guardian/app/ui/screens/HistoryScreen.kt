@@ -79,6 +79,10 @@ private fun iconFor(type: AnomalyType): ImageVector = when (type) {
     AnomalyType.CRASH -> Icons.Rounded.CarCrash
     AnomalyType.DEVICE_OFFLINE -> Icons.Rounded.Router
     AnomalyType.SOS -> Icons.Rounded.Campaign
+    AnomalyType.HARSH_CORNERING -> Icons.Rounded.Air
+    AnomalyType.ROLLOVER_RISK -> Icons.Rounded.Warning
+    AnomalyType.ROUGH_ROAD -> Icons.Rounded.Bolt
+    AnomalyType.FREE_FALL -> Icons.Rounded.Warning
 }
 
 @Composable
@@ -86,7 +90,7 @@ private fun AnomalyItem(a: AnomalyEvent) {
     val tone: Color = when {
         a.critical || a.type == AnomalyType.CRASH -> Critical
         a.type == AnomalyType.DEVICE_OFFLINE -> Muted
-        a.type == AnomalyType.IMPACT -> Warn
+        a.type == AnomalyType.IMPACT || a.type == AnomalyType.ROLLOVER_RISK || a.type == AnomalyType.FREE_FALL -> Warn
         else -> Ok
     }
     Card(

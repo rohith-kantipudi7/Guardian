@@ -11,6 +11,8 @@ data class BlackBoxBundle(
     val preAudioDurationSec: Int = 0,
     val cabinImagePath: String? = null,
     val roadImagePath: String? = null,
+    val cabinImages: List<String> = emptyList(),
+    val roadImages: List<String> = emptyList(),
     val sensorLog: String,
     val transcript: String?,
     val assessment: AiAssessment?,
@@ -30,7 +32,7 @@ fun BlackBoxBundle.toTransferJson(
 ): String {
     val a = assessment
     val text = if (a != null) "${a.whatHappened} ${a.occupantState} ${a.recommendation}" else ""
-    val images = listOfNotNull(cabinImagePath, roadImagePath).size
+    val images = maxOf(listOfNotNull(cabinImagePath, roadImagePath).size, cabinImages.size + roadImages.size)
     val tx = (transcript ?: "").replace("\\", " ").replace("\"", "'").replace("\n", " ")
     // Last frames travel inside the record so the device keeps them if the phone is lost.
     val thumbs = if (withThumbs) {
