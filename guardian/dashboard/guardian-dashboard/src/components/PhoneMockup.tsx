@@ -3,7 +3,6 @@ import { Box, Button, Stack, Typography } from '@mui/material';
 import ShieldOutlined from '@mui/icons-material/ShieldOutlined';
 import BluetoothConnectedOutlined from '@mui/icons-material/BluetoothConnectedOutlined';
 import PhonelinkEraseOutlined from '@mui/icons-material/PhonelinkEraseOutlined';
-import { formatPercent } from '../format';
 import type { CrashEvent } from '../types';
 
 function Screen({ children, bg }: { children: ReactNode; bg: string }) {
@@ -71,12 +70,6 @@ export function PhoneMockup({
               Severity
             </Typography>
             <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: 22 }}>{alert.severity}</Typography>
-          </Box>
-          <Box>
-            <Typography variant="caption" sx={{ color: '#fecaca' }}>
-              Confidence
-            </Typography>
-            <Typography sx={{ color: '#fff', fontWeight: 800, fontSize: 20 }}>{formatPercent(alert.confidence)}</Typography>
           </Box>
           <Box>
             <Typography variant="caption" sx={{ color: '#fecaca' }}>

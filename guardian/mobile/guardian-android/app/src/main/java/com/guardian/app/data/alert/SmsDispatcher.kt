@@ -43,15 +43,14 @@ class SmsDispatcher(private val context: Context) {
         contacts: List<EmergencyContact>,
     ): List<AlertDispatch> {
         val where = locationCoords?.let { "https://maps.google.com/?q=$it" } ?: "location unavailable"
-        val base = "GUARDIAN alert: collision detected " +
-            "(${(confidence * 100).toInt()}%) on $vehicle. Location: $where."
+        val base = "GUARDIAN alert: collision detected on $vehicle. Location: $where."
         val out = mutableListOf<AlertDispatch>()
         // Emergency desks: composed for the demo, not auto-dialled.
         out += AlertDispatch("Police control room", "112", "$base Please dispatch.", sent = false)
         out += AlertDispatch("Ambulance", "108", "$base Medical assistance may be required.", sent = false)
         // Real SMS to the occupant's configured contacts.
         for (c in contacts) {
-            val msg = "$base This is an automated alert from ${c.name.ifBlank { "a Guardian user" }}'s vehicle."
+            val msg = "$base This is an automated alert."
             out += AlertDispatch(c.name.ifBlank { "Contact" }, c.phone, msg, sent = send(c.phone, msg))
         }
         return out

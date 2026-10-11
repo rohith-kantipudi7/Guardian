@@ -1,6 +1,6 @@
 import { Box, Card, Chip, Stack, Typography } from '@mui/material';
 import PhoneDisabledOutlined from '@mui/icons-material/PhoneDisabledOutlined';
-import { formatClock, formatDuration, formatPercent, severityHex } from '../format';
+import { formatClock, formatDuration, severityHex } from '../format';
 import { useNow } from '../hooks/useNow';
 import type { CrashEvent } from '../types';
 import { StatusBadge } from './SeverityBadge';
@@ -42,7 +42,7 @@ export function IncidentQueue({
             <Box sx={{ p: 1.5 }}>
               <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
                 <Typography sx={{ fontWeight: 800, color: severityHex[c.severity] }}>
-                  {c.severity} · {formatPercent(c.confidence)}
+                  {c.severity}
                 </Typography>
                 <Typography variant="body2" sx={{ fontVariantNumeric: 'tabular-nums', fontWeight: 700 }}>
                   {formatDuration(now - Date.parse(c.timestamp))}

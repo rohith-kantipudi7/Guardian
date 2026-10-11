@@ -20,7 +20,7 @@ import { ImpactChart } from '../components/ImpactChart';
 import { NotifiedResponders } from '../components/NotifiedResponders';
 import { PhoneMockup } from '../components/PhoneMockup';
 import { SeverityBadge, StatusBadge } from '../components/SeverityBadge';
-import { formatClock, formatPercent, severityHex } from '../format';
+import { formatClock, severityHex } from '../format';
 import { api } from '../services/api';
 import { useCrashes, useSimState } from '../services/queries';
 import { simulator, type SimState } from '../services/simulator';
@@ -337,11 +337,6 @@ export function Showcase() {
                       <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}>
                         <Typography sx={{ fontWeight: 800 }}>{outcome.scenario.replace('_', ' ')}</Typography>
                         {outcome.severity && <SeverityBadge severity={outcome.severity} />}
-                        {outcome.confidence != null && (
-                          <Typography sx={{ color: severityHex[outcome.severity ?? 'NORMAL'], fontWeight: 800 }}>
-                            {formatPercent(outcome.confidence)}
-                          </Typography>
-                        )}
                         <Box sx={{ flex: 1 }} />
                         <Chip
                           size="small"
@@ -446,7 +441,7 @@ export function Showcase() {
                 >
                   <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography sx={{ fontWeight: 800, color: severityHex[c.severity] }}>
-                      {c.severity} · {formatPercent(c.confidence)}
+                      {c.severity}
                     </Typography>
                     <StatusBadge status={c.status} />
                   </Stack>

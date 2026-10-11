@@ -203,7 +203,7 @@ export function ResponderOps() {
             <Stack spacing={1.2} sx={{ mt: 1 }}>
               <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
                 <Chip size="small" color="error" label="Collision detected" />
-                <Chip size="small" variant="outlined" label={`${Math.round((bb.confidence ?? 0) * 100)}% confidence`} />
+
                 <Chip size="small" variant="outlined" label={`${bb.images ?? 0} photos`} />
                 <Chip size="small" variant="outlined" label={`${bb.preAudioSec ?? 0}s + ${bb.audioSec ?? 0}s audio`} />
                 <Typography variant="caption" color="text.secondary">

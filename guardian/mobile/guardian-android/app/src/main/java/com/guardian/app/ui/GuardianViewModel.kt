@@ -357,7 +357,7 @@ class GuardianViewModel(
         addAnomaly(
             AnomalyEvent(
                 AnomalyType.CRASH,
-                "Collision detected · ${(r.confidence * 100).toInt()}%",
+                "Collision detected",
                 r.accelPeakG,
                 System.currentTimeMillis(),
                 critical = r.severity == Severity.CRITICAL,

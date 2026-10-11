@@ -34,7 +34,7 @@ class EmergencyService:
 
     def _alert_text(self, crash: CrashEvent, vehicle: Vehicle | None, user: User | None, link: str) -> str:
         lines = [
-            f"[SIMULATED] GUARDIAN CRASH ALERT - {crash.severity} ({round(crash.confidence * 100)}% confidence)",
+            f"[SIMULATED] GUARDIAN CRASH ALERT - {crash.severity}",
             f"Time: {crash.timestamp:%d %b %Y %H:%M:%S} UTC",
         ]
         if crash.latitude is not None and crash.longitude is not None:

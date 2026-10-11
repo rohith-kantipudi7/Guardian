@@ -15,7 +15,7 @@ import {
 import PhoneDisabledOutlined from '@mui/icons-material/PhoneDisabledOutlined';
 import { useNavigate } from 'react-router-dom';
 import { SeverityBadge, StatusBadge } from '../components/SeverityBadge';
-import { formatDuration, formatPercent, formatTime } from '../format';
+import { formatDuration, formatTime } from '../format';
 import { useCrashes } from '../services/queries';
 
 type Filter = 'all' | 'active' | 'closed';
@@ -48,7 +48,6 @@ export function History() {
               <TableCell>Crash time</TableCell>
               <TableCell>Vehicle</TableCell>
               <TableCell>Severity</TableCell>
-              <TableCell>Confidence</TableCell>
               <TableCell>Reported via</TableCell>
               <TableCell>Status</TableCell>
               <TableCell>Handled by</TableCell>
@@ -68,7 +67,6 @@ export function History() {
                 <TableCell>
                   <SeverityBadge severity={c.severity} />
                 </TableCell>
-                <TableCell>{formatPercent(c.confidence)}</TableCell>
                 <TableCell>
                   {c.phoneConnected ? (
                     'Device LTE · phone linked'

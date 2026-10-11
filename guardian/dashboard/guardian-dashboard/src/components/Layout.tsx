@@ -18,7 +18,6 @@ import RouterOutlined from '@mui/icons-material/RouterOutlined';
 import InfoOutlined from '@mui/icons-material/InfoOutlined';
 import ShieldOutlined from '@mui/icons-material/ShieldOutlined';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { formatPercent } from '../format';
 import { useRealtime } from '../services/realtime';
 import { neu, surfaces } from '../theme';
 
@@ -204,7 +203,7 @@ export function Layout() {
         >
           {alert && (
             <>
-              <b>NEW {alert.severity} CRASH</b> · {alert.vehicleId ?? alert.deviceId} · {formatPercent(alert.confidence)} ·
+              <b>NEW {alert.severity} CRASH</b> · {alert.vehicleId ?? alert.deviceId} ·
               phone {alert.phoneConnected ? 'connected' : 'NOT connected'}
             </>
           )}

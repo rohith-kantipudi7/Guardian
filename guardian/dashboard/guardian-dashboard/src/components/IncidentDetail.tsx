@@ -9,7 +9,7 @@ import ImageOutlined from '@mui/icons-material/ImageOutlined';
 import DescriptionOutlined from '@mui/icons-material/DescriptionOutlined';
 import ShowChartOutlined from '@mui/icons-material/ShowChartOutlined';
 import SignalCellularConnectedNoInternet0BarOutlined from '@mui/icons-material/SignalCellularConnectedNoInternet0BarOutlined';
-import { formatClock, formatCoords, formatDuration, formatPercent, severityHex } from '../format';
+import { formatClock, formatCoords, formatDuration, severityHex } from '../format';
 import { useNow } from '../hooks/useNow';
 import { useDevices, useUser, useVehicles } from '../services/queries';
 import type { BlackBoxEvidence, CrashEvent, EmergencyAction, EvidenceKind } from '../types';
@@ -282,7 +282,6 @@ export function IncidentDetail({ incident: c }: { incident: CrashEvent }) {
 
         <Section title="Crash data">
           <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))' }}>
-            <Fact label="Confidence">{formatPercent(c.confidence)}</Fact>
             <Fact label="Impact">{fmt(c.accelerationPeak, 'g')}</Fact>
             <Fact label="Rotation">{fmt(c.rotationPeak, 'rad/s')}</Fact>
             <Fact label="Speed before">{fmt(c.speed, 'km/h', 0)}</Fact>
@@ -303,7 +302,7 @@ export function IncidentDetail({ incident: c }: { incident: CrashEvent }) {
               a={{
                 channel: 'DEVICE',
                 status: 'DETECTED',
-                message: `Crash detected on the vehicle device (${c.severity}, ${formatPercent(c.confidence)})`,
+                message: `Crash detected on the vehicle device (${c.severity})`,
                 operator: null,
                 createdAt: c.timestamp,
               }}

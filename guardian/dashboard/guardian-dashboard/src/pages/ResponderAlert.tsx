@@ -7,7 +7,7 @@ import CallOutlined from '@mui/icons-material/CallOutlined';
 import PhoneDisabledOutlined from '@mui/icons-material/PhoneDisabledOutlined';
 import { useParams } from 'react-router-dom';
 import { MapView } from '../components/map/MapView';
-import { formatClock, formatDuration, formatPercent, formatTime, recipientLabel, severityHex } from '../format';
+import { formatClock, formatDuration, formatTime, recipientLabel, severityHex } from '../format';
 import { useNow } from '../hooks/useNow';
 import { api } from '../services/api';
 import type { AlertView } from '../types';
@@ -102,8 +102,7 @@ export function ResponderAlert() {
             {a.severity} crash
           </Typography>
           <Typography sx={{ opacity: 0.9 }}>
-            {formatTime(a.timestamp)} · {formatDuration(now - Date.parse(a.timestamp))} ago ·{' '}
-            {formatPercent(a.confidence)} confidence
+            {formatTime(a.timestamp)} · {formatDuration(now - Date.parse(a.timestamp))} ago
           </Typography>
           <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
             Sent to: {recipientLabel[a.recipientType]} · {a.recipientName}

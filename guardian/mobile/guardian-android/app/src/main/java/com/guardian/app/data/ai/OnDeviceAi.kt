@@ -27,8 +27,7 @@ class EdgeReasoner : OnDeviceAi {
             else -> "a moderate impact"
         }
         val speed = ctx.speedKmh?.let { " at ~${it.roundToInt()} km/h" } ?: ""
-        val headline = "Collision detected · " +
-            "${(ctx.confidence * 100).roundToInt()}%"
+        val headline = "Collision detected"
         val whatHappened = "Detected $mechanism$speed — ${"%.1f".format(g)} g" +
             (if (rollover) ", ${"%.1f".format(ctx.rotationPeakRadS)} rad/s rotation." else " deceleration.")
         val occupantState = when {
