@@ -19,7 +19,6 @@ import FamilyRestroomOutlined from '@mui/icons-material/FamilyRestroomOutlined';
 import WarningAmberOutlined from '@mui/icons-material/WarningAmberOutlined';
 import ShieldOutlined from '@mui/icons-material/ShieldOutlined';
 import SmartphoneOutlined from '@mui/icons-material/SmartphoneOutlined';
-import SmsOutlined from '@mui/icons-material/SmsOutlined';
 import type { ReactNode } from 'react';
 import { KpiCard } from '../components/KpiCard';
 import { MapView, type MapMarker } from '../components/map/MapView';
@@ -95,7 +94,6 @@ export function ResponderOps() {
         },
       ]
     : [];
-  const smsSent = bb?.smsSent ?? 0;
 
   return (
     <Stack spacing={3}>
@@ -154,29 +152,15 @@ export function ResponderOps() {
         <Card>
           <CardContent>
             <Typography variant="overline" color="text.secondary">
-              Latest incident
+              Incident location
             </Typography>
-            {bb?.eventId ? (
-              <Stack spacing={1.2} sx={{ mt: 1 }}>
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-                  <Chip size="small" color="error" label="Collision detected" />
-                  <Chip size="small" variant="outlined" label={`${Math.round((bb.confidence ?? 0) * 100)}% confidence`} />
-                  <Chip size="small" variant="outlined" label={`${bb.images ?? 0} photos`} />
-                  <Chip size="small" variant="outlined" label={`${bb.preAudioSec ?? 0}s + ${bb.audioSec ?? 0}s audio`} />
-                  <Typography variant="caption" color="text.secondary">
-                    {bb.eventId}
-                  </Typography>
-                </Stack>
-                {bb.sensorLog && <Typography variant="body2">{bb.sensorLog}</Typography>}
-                {bb.assessment && (
-                  <Typography variant="body2" color="text.secondary">
-                    {bb.assessment}
-                  </Typography>
-                )}
-              </Stack>
+            {coords ? (
+              <Box sx={{ mt: 1 }}>
+                <MapView markers={markers} height={480} />
+              </Box>
             ) : (
               <Typography color="text.secondary" sx={{ mt: 1 }}>
-                No incident yet. A phone crash (or a device collision while the phone is offline) will appear here.
+                No location yet — a crash with the phone's last‑known GPS will plot here.
               </Typography>
             )}
           </CardContent>
@@ -192,19 +176,11 @@ export function ResponderOps() {
               <Responder name="Ambulance" contact="108" icon={<LocalHospitalOutlined />} active={active} />
               <Responder name="Family" contact="Emergency contacts" icon={<FamilyRestroomOutlined />} active={active} />
             </Stack>
-            <Stack direction="row" spacing={1} sx={{ mt: 1.5, flexWrap: 'wrap' }}>
-              <Chip
-                size="small"
-                icon={<SmsOutlined />}
-                label={`SMS sent to ${smsSent} contact(s)`}
-                color={smsSent > 0 ? 'success' : 'default'}
-                variant="outlined"
-              />
-              {alert.active && <Chip size="small" color="error" label="Backup alert dispatched" />}
-            </Stack>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1.5 }}>
-              Delivery to responders needs the Guardian server + internet; on this hotspot it shows the escalation state.
-            </Typography>
+            {alert.active && (
+              <Stack direction="row" spacing={1} sx={{ mt: 1.5, flexWrap: 'wrap' }}>
+                <Chip size="small" color="error" label="Backup alert dispatched" />
+              </Stack>
+            )}
           </CardContent>
         </Card>
       </Box>
@@ -221,15 +197,29 @@ export function ResponderOps() {
       <Card>
         <CardContent>
           <Typography variant="overline" color="text.secondary">
-            Incident location (OpenStreetMap)
+            Latest incident
           </Typography>
-          {coords ? (
-            <Box sx={{ mt: 1 }}>
-              <MapView markers={markers} height={480} />
-            </Box>
+          {bb?.eventId ? (
+            <Stack spacing={1.2} sx={{ mt: 1 }}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+                <Chip size="small" color="error" label="Collision detected" />
+                <Chip size="small" variant="outlined" label={`${Math.round((bb.confidence ?? 0) * 100)}% confidence`} />
+                <Chip size="small" variant="outlined" label={`${bb.images ?? 0} photos`} />
+                <Chip size="small" variant="outlined" label={`${bb.preAudioSec ?? 0}s + ${bb.audioSec ?? 0}s audio`} />
+                <Typography variant="caption" color="text.secondary">
+                  {bb.eventId}
+                </Typography>
+              </Stack>
+              {bb.sensorLog && <Typography variant="body2">{bb.sensorLog}</Typography>}
+              {bb.assessment && (
+                <Typography variant="body2" color="text.secondary">
+                  {bb.assessment}
+                </Typography>
+              )}
+            </Stack>
           ) : (
             <Typography color="text.secondary" sx={{ mt: 1 }}>
-              No location yet — a crash with the phone's last‑known GPS will plot here.
+              No incident yet. A phone crash (or a device collision while the phone is offline) will appear here.
             </Typography>
           )}
         </CardContent>

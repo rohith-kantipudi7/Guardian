@@ -60,7 +60,6 @@ export function IncidentTimeline({ bb, collision, backupAlert }: Readonly<{ bb?:
     { key: 'transcript', label: 'Audio transcribed on the phone (whisper)', ok: record && !!bb?.transcript },
     { key: 'ai', label: 'AI assessment attached', ok: record && !!bb?.assessment },
     { key: 'gps', label: 'GPS location attached', ok: record && !!bb?.location },
-    { key: 'sms', label: `SMS sent to ${bb?.smsSent ?? 0} contact(s)`, ok: record && (bb?.smsSent ?? 0) > 0 },
     { key: 'backup', label: 'Backup alert raised by the device', ok: backupAlert },
   ];
   const seen = useFirstSeen(Object.fromEntries(stages.map((s) => [s.key, s.ok])), record ? (bb?.eventId ?? '') : '');
