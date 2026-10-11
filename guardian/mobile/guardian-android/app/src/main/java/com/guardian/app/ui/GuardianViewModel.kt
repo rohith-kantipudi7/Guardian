@@ -463,7 +463,11 @@ class GuardianViewModel(
         val s = settings.value
         val where = phoneLocation.lastKnown()?.let { "https://maps.google.com/?q=$it" } ?: "location unavailable"
         _alert.value = a.copy(shareText = "GUARDIAN alert: collision detected on ${s.vehicleName} (${s.vehicleRegistration}). Location: $where")
-        callDispatcher.start(s.contacts) { list -> _alert.value = _alert.value?.copy(calls = list) }
+        callDispatcher.start(
+            s.contacts,
+            "This is an automatic Guardian alert. A collision was detected in ${s.vehicleName}. " +
+                "Please check your messages for the map link and call emergency services.",
+        ) { list -> _alert.value = _alert.value?.copy(calls = list) }
     }
 
     private companion object {
