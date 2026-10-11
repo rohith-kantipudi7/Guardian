@@ -46,7 +46,6 @@ class CallDispatcher(private val context: Context) {
     private val handler = Handler(Looper.getMainLooper())
     var onImSafe: () -> Unit = {}
     var locationText: () -> String? = { null }
-    private val overlay = AlertOverlay(context) { onImSafe() }
     private var tts: TextToSpeech? = null
     private var ttsReady = false
     private var message = ""
@@ -73,7 +72,6 @@ class CallDispatcher(private val context: Context) {
         if (entries.isEmpty()) return
         active = true
         index = -1
-        if (overlay.canShow()) overlay.show(entries, locationText())
         if (tts == null) tts = TextToSpeech(context) { ttsReady = it == TextToSpeech.SUCCESS }
         listen()
         dialNext()
@@ -83,7 +81,6 @@ class CallDispatcher(private val context: Context) {
         active = false
         cancelSpeech()
         unlisten()
-        overlay.hide()
         entries = emptyList()
     }
 
@@ -152,7 +149,6 @@ class CallDispatcher(private val context: Context) {
     private fun setStatus(i: Int, s: CallStatus) {
         entries = entries.mapIndexed { j, e -> if (j == i) e.copy(status = s) else e }
         onUpdate(entries)
-        overlay.update(entries)
     }
 
     private fun dialNext() {
@@ -163,7 +159,6 @@ class CallDispatcher(private val context: Context) {
         if (index >= entries.size) {
             active = false
             unlisten()
-            overlay.hide()
             return
         }
         sawOffHook = false
@@ -200,7 +195,6 @@ class CallDispatcher(private val context: Context) {
     }
 
     private fun keepAppInFront() {
-        if (overlay.canShow()) return
         handler.removeCallbacks(front)
         handler.postDelayed(front, 500)
     }
