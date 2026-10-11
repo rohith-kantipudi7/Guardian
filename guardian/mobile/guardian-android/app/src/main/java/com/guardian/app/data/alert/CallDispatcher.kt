@@ -17,9 +17,9 @@ import android.telephony.TelephonyManager
 import androidx.core.content.ContextCompat
 import com.guardian.app.data.settings.EmergencyContact
 
-enum class CallStatus { QUEUED, CALLING, DONE, FAILED }
+enum class CallStatus { QUEUED, CALLING, DONE, FAILED, TEST_ONLY }
 
-data class CallEntry(val label: String, val number: String, val status: CallStatus)
+data class CallEntry(val label: String, val number: String, val status: CallStatus, val dial: Boolean = true)
 
 /**
  * Places real calls over the SIM to the emergency contacts, one after another (a phone holds one
@@ -48,10 +48,13 @@ class CallDispatcher(private val context: Context) {
 
     private fun granted(p: String) = ContextCompat.checkSelfPermission(context, p) == PackageManager.PERMISSION_GRANTED
 
-    fun start(contacts: List<EmergencyContact>, spokenMessage: String, update: (List<CallEntry>) -> Unit) {
+    /** Police/ambulance are only really dialled when [dialServices] is true; otherwise listed as test-only. */
+    fun start(contacts: List<EmergencyContact>, spokenMessage: String, dialServices: Boolean, update: (List<CallEntry>) -> Unit) {
         if (active) return
         message = spokenMessage
-        entries = contacts.filter { it.phone.isNotBlank() }
+        val services = listOf("Police" to "112", "Ambulance" to "108")
+            .map { CallEntry(it.first, it.second, CallStatus.QUEUED, dial = dialServices) }
+        entries = services + contacts.filter { it.phone.isNotBlank() }
             .map { CallEntry(it.name.ifBlank { "Contact" }, it.phone, CallStatus.QUEUED) }
         onUpdate = update
         update(entries)
@@ -97,7 +100,7 @@ class CallDispatcher(private val context: Context) {
     private fun dialNext() {
         if (!active) return
         cancelSpeech()
-        if (index >= 0) setStatus(index, if (entries[index].status == CallStatus.FAILED) CallStatus.FAILED else CallStatus.DONE)
+        if (index >= 0 && entries[index].status == CallStatus.CALLING) setStatus(index, CallStatus.DONE)
         index++
         if (index >= entries.size) {
             active = false
@@ -105,13 +108,36 @@ class CallDispatcher(private val context: Context) {
             return
         }
         sawOffHook = false
+        if (!entries[index].dial) {
+            setStatus(index, CallStatus.TEST_ONLY)
+            dialNext()
+            return
+        }
         val ok = granted(Manifest.permission.CALL_PHONE) && runCatching {
             context.getSystemService(TelecomManager::class.java)
                 .placeCall(Uri.fromParts("tel", entries[index].number, null), Bundle())
         }.isSuccess
-        if (ok) setStatus(index, CallStatus.CALLING) else {
+        if (ok) {
+            setStatus(index, CallStatus.CALLING)
+            keepAppInFront()
+        } else {
             setStatus(index, CallStatus.FAILED)
             dialNext()
+        }
+    }
+
+    /** The call runs on the SIM; Android always shows the dialer, so pull our alert screen back over it. */
+    private fun keepAppInFront() {
+        listOf(800L, 2500L, 5000L).forEach { d ->
+            handler.postDelayed({
+                if (!active) return@postDelayed
+                runCatching {
+                    context.startActivity(
+                        android.content.Intent(context, com.guardian.app.MainActivity::class.java)
+                            .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
+                    )
+                }
+            }, d)
         }
     }
 
@@ -121,6 +147,7 @@ class CallDispatcher(private val context: Context) {
             TelephonyManager.CALL_STATE_OFFHOOK -> if (!sawOffHook) {
                 sawOffHook = true
                 scheduleSpeech()
+                keepAppInFront()
             }
             TelephonyManager.CALL_STATE_IDLE -> if (sawOffHook) dialNext()
         }

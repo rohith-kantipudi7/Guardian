@@ -213,6 +213,7 @@ private fun CallingList(calls: List<CallEntry>, shareText: String, photos: List<
                     CallStatus.CALLING -> "Calling" to Critical
                     CallStatus.DONE -> "Called" to Ok
                     CallStatus.FAILED -> "Failed" to Warn
+                    CallStatus.TEST_ONLY -> "Test mode · not dialled" to Muted
                 }
                 Text(text, color = tone, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 if (c.status == CallStatus.CALLING) {

@@ -467,6 +467,7 @@ class GuardianViewModel(
             s.contacts,
             "This is an automatic Guardian alert. A collision was detected in ${s.vehicleName}. " +
                 "Please check your messages for the map link and call emergency services.",
+            dialServices = !s.demoMode,
         ) { list -> _alert.value = _alert.value?.copy(calls = list) }
     }
 
