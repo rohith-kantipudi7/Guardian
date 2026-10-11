@@ -152,7 +152,7 @@ fun EmergencyScreen(alert: EmergencyAlert, onImSafe: () -> Unit, onDismiss: () -
         }
 
         // 3. Calling the emergency contacts
-        if (alert.state == CrashState.EMERGENCY_ACTIVE) {
+        if (alert.state == CrashState.EMERGENCY_ACTIVE || alert.state == CrashState.VERIFYING) {
             val photos = (bb?.cabinImages.orEmpty() + bb?.roadImages.orEmpty())
                 .ifEmpty { listOfNotNull(bb?.cabinImagePath, bb?.roadImagePath) }
             CallingList(alert.calls, alert.shareText, photos)
@@ -198,7 +198,7 @@ private fun CallingList(calls: List<CallEntry>, shareText: String, photos: List<
         label = "ring",
     )
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("CALLING", color = Critical, fontSize = Label, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
+        Text(if (calls.any { it.status != CallStatus.QUEUED }) "CALLING" else "WILL CALL", color = Critical, fontSize = Label, fontWeight = FontWeight.Bold, letterSpacing = 1.2.sp)
         if (calls.isEmpty()) {
             Text("No emergency contacts saved. Add them in Settings.", color = Muted, fontSize = 13.sp)
         }

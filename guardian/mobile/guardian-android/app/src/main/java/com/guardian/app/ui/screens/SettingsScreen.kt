@@ -131,6 +131,27 @@ fun SettingsScreen(vm: GuardianViewModel, onPair: () -> Unit) {
             )
         }
 
+        SectionCard("Alert delay") {
+            Text(
+                "After a crash, Guardian waits this long before texting and calling, so you can tap I'M SAFE.",
+                color = Muted,
+                fontSize = 12.sp,
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(5, 10, 15, 20, 30).forEach { sec ->
+                    if (s.alertDelaySec == sec) {
+                        Button(onClick = {}, modifier = Modifier.weight(1f), contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)) { Text("${sec}s") }
+                    } else {
+                        OutlinedButton(
+                            onClick = { vm.updateSettings { it.copy(alertDelaySec = sec) } },
+                            modifier = Modifier.weight(1f),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp),
+                        ) { Text("${sec}s") }
+                    }
+                }
+            }
+        }
+
         SectionCard("App") {
             ToggleRow("Crash alert notifications", s.notifications) { v -> vm.updateSettings { it.copy(notifications = v) } }
             ToggleRow("Show device test controls (demo)", s.demoMode) { v -> vm.updateSettings { it.copy(demoMode = v) } }

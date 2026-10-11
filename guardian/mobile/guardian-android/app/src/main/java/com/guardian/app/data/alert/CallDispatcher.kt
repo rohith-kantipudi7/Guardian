@@ -52,6 +52,11 @@ class CallDispatcher(private val context: Context) {
 
     private fun granted(p: String) = ContextCompat.checkSelfPermission(context, p) == PackageManager.PERMISSION_GRANTED
 
+    /** The list shown during the pre-call countdown, same entries start() will dial. */
+    fun preview(contacts: List<EmergencyContact>, dialServices: Boolean): List<CallEntry> =
+        listOf("Police" to "112", "Ambulance" to "108").map { CallEntry(it.first, it.second, CallStatus.QUEUED, dial = dialServices) } +
+            contacts.filter { it.phone.isNotBlank() }.map { CallEntry(it.name.ifBlank { "Contact" }, it.phone, CallStatus.QUEUED) }
+
     /** Police/ambulance are only really dialled when [dialServices] is true; otherwise listed as test-only. */
     fun start(contacts: List<EmergencyContact>, spokenMessage: String, dialServices: Boolean, update: (List<CallEntry>) -> Unit) {
         if (active) return
@@ -172,19 +177,23 @@ class CallDispatcher(private val context: Context) {
         }
     }
 
-    /** The call runs on the SIM; Android always shows the dialer, so pull our alert screen back over it. */
-    private fun keepAppInFront() {
-        listOf(800L, 2500L, 5000L).forEach { d ->
-            handler.postDelayed({
-                if (!active) return@postDelayed
-                runCatching {
-                    context.startActivity(
-                        android.content.Intent(context, com.guardian.app.MainActivity::class.java)
-                            .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
-                    )
-                }
-            }, d)
+    /** The call runs on the SIM; Android always shows the dialer, so keep pulling our alert screen back over it. */
+    private val front = object : Runnable {
+        override fun run() {
+            if (!active) return
+            runCatching {
+                context.startActivity(
+                    android.content.Intent(context, com.guardian.app.MainActivity::class.java)
+                        .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK or android.content.Intent.FLAG_ACTIVITY_REORDER_TO_FRONT),
+                )
+            }
+            handler.postDelayed(this, 1000)
         }
+    }
+
+    private fun keepAppInFront() {
+        handler.removeCallbacks(front)
+        handler.postDelayed(front, 500)
     }
 
     private fun onState(state: Int) {

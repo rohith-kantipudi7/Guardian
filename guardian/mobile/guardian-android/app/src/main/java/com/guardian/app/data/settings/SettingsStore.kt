@@ -33,6 +33,7 @@ data class AppSettings(
     val deviceSource: DeviceSource = DeviceSource.NONE,
     val demoMode: Boolean = true,
     val notifications: Boolean = true,
+    val alertDelaySec: Int = 15,
     val contacts: List<EmergencyContact> = emptyList(),
 )
 
@@ -55,6 +56,7 @@ class SettingsStore(context: Context) {
                 ?.let { v -> DeviceSource.entries.firstOrNull { it.name == v } } ?: d.deviceSource,
             demoMode = prefs.getBoolean("demoMode", d.demoMode),
             notifications = prefs.getBoolean("notifications", d.notifications),
+            alertDelaySec = prefs.getInt("alertDelaySec", d.alertDelaySec),
             contacts = prefs.getString("contacts", null)
                 ?.let { runCatching { json.decodeFromString<List<EmergencyContact>>(it) }.getOrNull() }
                 ?: emptyList(),
@@ -73,6 +75,7 @@ class SettingsStore(context: Context) {
             .putString("deviceSource", s.deviceSource.name)
             .putBoolean("demoMode", s.demoMode)
             .putBoolean("notifications", s.notifications)
+            .putInt("alertDelaySec", s.alertDelaySec)
             .putString("contacts", json.encodeToString(s.contacts))
             .apply()
         _settings.value = s

@@ -63,6 +63,7 @@ data class EmergencyAlert(
     val dispatches: List<AlertDispatch> = emptyList(),
     val calls: List<com.guardian.app.data.alert.CallEntry> = emptyList(),
     val shareText: String = "",
+    val callsStarted: Boolean = false,
 )
 
 class GuardianViewModel(
@@ -345,15 +346,32 @@ class GuardianViewModel(
             )
             return
         }
+        val delayMs = settings.value.alertDelaySec * 1000L
         _alert.value = EmergencyAlert(
-            state = CrashState.EMERGENCY_ACTIVE,
+            state = CrashState.VERIFYING,
             severity = r.severity,
             confidence = r.confidence,
-            verifyRemainingMs = null,
+            verifyRemainingMs = delayMs,
             startedAtMs = System.currentTimeMillis(),
+            calls = callDispatcher.preview(settings.value.contacts, !settings.value.demoMode),
         )
         alarmSiren?.start()
-        startCalls()
+        // Wait the user-set delay (cancelled by I'M SAFE) before any SMS or call goes out.
+        val go = kotlinx.coroutines.CompletableDeferred<Boolean>()
+        countdownJob?.cancel()
+        countdownJob = viewModelScope.launch {
+            val end = System.currentTimeMillis() + delayMs
+            while (end - System.currentTimeMillis() > 0) {
+                val cur = _alert.value ?: return@launch
+                _alert.value = cur.copy(verifyRemainingMs = end - System.currentTimeMillis())
+                delay(250)
+            }
+            val cur = _alert.value ?: return@launch
+            _alert.value = cur.copy(state = CrashState.EMERGENCY_ACTIVE, verifyRemainingMs = null)
+            startCalls()
+            go.complete(true)
+        }
+        countdownJob?.invokeOnCompletion { go.complete(false) }
         addAnomaly(
             AnomalyEvent(
                 AnomalyType.CRASH,
@@ -368,6 +386,7 @@ class GuardianViewModel(
         }
         // Real dispatch: text the occupant's emergency contacts over cellular SMS (no internet needed).
         viewModelScope.launch {
+            if (!go.await()) return@launch
             val s = settings.value
             val dispatches = smsDispatcher.dispatch(
                 r.severity,
@@ -466,10 +485,10 @@ class GuardianViewModel(
     /** Dials the emergency contacts over the SIM, one after another, once per alert. */
     private fun startCalls() {
         val a = _alert.value ?: return
-        if (a.calls.isNotEmpty()) return
+        if (a.callsStarted) return
         val s = settings.value
         val where = phoneLocation.lastKnown()?.let { "https://maps.google.com/?q=$it" } ?: "location unavailable"
-        _alert.value = a.copy(shareText = "GUARDIAN alert: collision detected on ${s.vehicleName} (${s.vehicleRegistration}). Location: $where")
+        _alert.value = a.copy(callsStarted = true, shareText = "GUARDIAN alert: collision detected on ${s.vehicleName} (${s.vehicleRegistration}). Location: $where")
         callDispatcher.start(
             s.contacts,
             callMessage(s),
@@ -481,11 +500,14 @@ class GuardianViewModel(
         const val CRASH_SHOTS = 5
     }
 
+    private var countdownJob: kotlinx.coroutines.Job? = null
+
     private fun callMessage(s: AppSettings) =
         "This is an automatic Guardian alert. A collision was detected in ${s.vehicleName}. " +
             "Please check your messages for the map link and call emergency services."
 
     fun imSafe() = viewModelScope.launch {
+        countdownJob?.cancel()
         alarmSiren?.stop()
         callDispatcher.stop()
         crashStored = false
